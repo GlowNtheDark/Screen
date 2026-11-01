@@ -103,7 +103,7 @@ behavior.
 | Sidebar | Currently selected tab button when the rail is entered; exact initial startup rail target is unverified | Left/Right/Select handoff activates or leaves the rail per sidebar state; Back does not skip an active child route | Return to active tab content. Search requests its app-owned field; repeat root-tab entry requests first displayed item. Home should restore its remembered tile or specified fallback |
 | Home | Remembered semantic tile when returning; otherwise the ready initial Home candidate/first available row target | Item selection pushes/presents details; player/dismissal returns through actual route; Back at root follows platform/app policy | Exact originating `(groupID,itemID)`; if missing use Continue same nonempty series, nearest tile in original row, then first tile in ordered rows. Sidebar return uses last active Home tile, nearest tile in that row, then first row |
 | Home shelf/tile | Existing focus if retained; otherwise parent Home target or native focus candidate | Details route or the tile's explicit action | Same tile if valid; nearest sibling in same row; first valid tile in that row; then Home fallback |
-| Movies / TV Shows / Media library | Root-tab repeat explicitly scrolls to top and requests first displayed item; ordinary entry/default is native and unverified | Nested folder/filter/detail routes dismiss one child at a time | Show Details dismissal restores the exact originating item in the same tab/library when available; otherwise nearest valid item by saved collection index (lower index wins a tie), then the library's first item. Preserve scroll when visible; reveal only when offscreen |
+| Movies / TV Shows libraries | Root-tab repeat explicitly scrolls to top and requests first displayed item; ordinary entry/default is native and unverified | Nested folder/filter/detail routes dismiss one child at a time | Show Details dismissal restores the exact originating item in the same tab/library when available; otherwise nearest valid item by saved collection index (lower index wins a tie), then the library's first item. Preserve scroll when visible; reveal only when offscreen |
 | Search | Pending sidebar-entry request targets the app-owned Search field; without a pending request native initial focus is unverified | Dismiss result details/presentation before Search; keyboard Back behavior is platform-owned until verified | Show Details dismissal restores the exact result by query, group, and item identity when still valid; otherwise the Search field. Preserve query, result membership, and scroll position |
 | Settings | Native first available Form/control; exact default is unverified | Native picker/menu first, then one Settings child route | Invoking row/control if still present, else first meaningful control in the parent form; platform restoration is unverified |
 | Movie Details | Shared `ItemView` coordinator targets Play | Dismiss player or nested route first, then this Details route | Preserve the same Details instance and restore the exact originating Play or Play From Beginning action while it remains present and eligible; use Play only if that action no longer exists or is ineligible |
@@ -135,7 +135,7 @@ ready. Exact launch landing focus depends on available content and needs runtime
 
 Focusable elements: tab buttons while the rail owns focus; active tab content when the
 rail is collapsed. The focused tab can preview its page before selection. Home, TV
-Shows, Movies, Search, Media, and Settings are the current tab set.
+Shows, Movies, Search, Requests, and Settings are the current tvOS tab set.
 
 | Current focus/region | Up | Down | Left | Right | Select | Back |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -260,15 +260,7 @@ Back dismisses one child route at a time; Search root Back returns to its parent
 Right/Select to the app-owned field. Keyboard starts editing at `A`; results are focus
 sections. iOS retains `.searchable`.
 
-## Media tab and Settings
-
-### Media tab
-
-The Media tab exposes the user's server library through `UserViewLibrary` and its
-library/grid route. It follows the Movies/TV Shows library focus model: native spatial
-grid movement, route selection by item type, and tab/sidebar entry/dismissal. Exact
-default focus and nested library Back restoration are not app-owned and need runtime
-confirmation.
+## Settings
 
 ### Settings root and nested settings
 

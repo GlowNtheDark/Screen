@@ -12,6 +12,12 @@ import SwiftUI
 
 extension NavigationRoute {
 
+    static var seerrSettings: NavigationRoute {
+        NavigationRoute(id: "seerrSettings") {
+            SeerrSettingsView()
+        }
+    }
+
     static func actionBarButtonSelector(selectedButtonsBinding: Binding<[VideoPlayerActionButton]>) -> NavigationRoute {
         NavigationRoute(id: "actionBarButtonSelector") {
             OrderedSectionSelectorView(selection: selectedButtonsBinding, sources: VideoPlayerActionButton.allCases)

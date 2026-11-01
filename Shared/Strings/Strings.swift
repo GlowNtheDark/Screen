@@ -292,12 +292,12 @@ internal enum L10n {
   internal static let cinematicBackground = L10n.tr("Localizable", "cinematicBackground", fallback: "Cinematic background")
   /// Client
   internal static let client = L10n.tr("Localizable", "client", fallback: "Client")
+  /// Clip
+  internal static let clip = L10n.tr("Localizable", "clip", fallback: "Clip")
   /// Clock
   internal static let clock = L10n.tr("Localizable", "clock", fallback: "Clock")
   /// Clock size
   internal static let clockSize = L10n.tr("Localizable", "clockSize", fallback: "Clock size")
-  /// Clip
-  internal static let clip = L10n.tr("Localizable", "clip", fallback: "Clip")
   /// Close
   internal static let close = L10n.tr("Localizable", "close", fallback: "Close")
   /// Close player
@@ -1020,6 +1020,8 @@ internal enum L10n {
   internal static let mediaDownloads = L10n.tr("Localizable", "mediaDownloads", fallback: "Media downloads")
   /// Media playback
   internal static let mediaPlayback = L10n.tr("Localizable", "mediaPlayback", fallback: "Media playback")
+  /// Medium
+  internal static let medium = L10n.tr("Localizable", "medium", fallback: "Medium")
   /// Mbps
   internal static let megabitsPerSecond = L10n.tr("Localizable", "megabitsPerSecond", fallback: "Mbps")
   /// Menu
@@ -1480,6 +1482,200 @@ internal enum L10n {
   internal static let seek = L10n.tr("Localizable", "seek", fallback: "Seek")
   /// See more
   internal static let seeMore = L10n.tr("Localizable", "seeMore", fallback: "See more")
+  /// Seerr
+  internal static let seerr = L10n.tr("Localizable", "seerr", fallback: "Seerr")
+  /// Server address
+  internal static let seerrAddress = L10n.tr("Localizable", "seerrAddress", fallback: "Server address")
+  /// Enter a hostname or IP address with an optional port. Pasting a complete URL keeps its protocol and server path.
+  internal static let seerrAddressHelp = L10n.tr("Localizable", "seerrAddressHelp", fallback: "Enter a hostname or IP address with an optional port. Pasting a complete URL keeps its protocol and server path.")
+  /// media.example.com:5055
+  internal static let seerrAddressPlaceholder = L10n.tr("Localizable", "seerrAddressPlaceholder", fallback: "media.example.com:5055")
+  /// Enter a server hostname or IP address.
+  internal static let seerrAddressRequired = L10n.tr("Localizable", "seerrAddressRequired", fallback: "Enter a server hostname or IP address.")
+  /// Completing Seerr sign-in…
+  internal static let seerrAuthenticating = L10n.tr("Localizable", "seerrAuthenticating", fallback: "Completing Seerr sign-in…")
+  /// Availability
+  internal static let seerrAvailability = L10n.tr("Localizable", "seerrAvailability", fallback: "Availability")
+  /// Awaiting Approval
+  internal static let seerrAwaitingApproval = L10n.tr("Localizable", "seerrAwaitingApproval", fallback: "Awaiting Approval")
+  /// Cancel
+  internal static let seerrCancel = L10n.tr("Localizable", "seerrCancel", fallback: "Cancel")
+  /// Quick Connect cancelled.
+  internal static let seerrCancelled = L10n.tr("Localizable", "seerrCancelled", fallback: "Quick Connect cancelled.")
+  /// Connect Seerr
+  internal static let seerrConnect = L10n.tr("Localizable", "seerrConnect", fallback: "Connect Seerr")
+  /// Connected to Seerr.
+  internal static let seerrConnected = L10n.tr("Localizable", "seerrConnected", fallback: "Connected to Seerr.")
+  /// Connected account
+  internal static let seerrConnectedAccount = L10n.tr("Localizable", "seerrConnectedAccount", fallback: "Connected account")
+  /// Connected to Seerr as %@.
+  internal static func seerrConnectedAs(_ p1: Any) -> String {
+    return L10n.tr("Localizable", "seerrConnectedAs", String(describing: p1), fallback: "Connected to Seerr as %@.")
+  }
+  /// Connecting to Seerr…
+  internal static let seerrConnecting = L10n.tr("Localizable", "seerrConnecting", fallback: "Connecting to Seerr…")
+  /// Do not include a username or password in the server address.
+  internal static let seerrCredentialsNotAllowed = L10n.tr("Localizable", "seerrCredentialsNotAllowed", fallback: "Do not include a username or password in the server address.")
+  /// Unable to load title details
+  internal static let seerrDetailsLoadError = L10n.tr("Localizable", "seerrDetailsLoadError", fallback: "Unable to load title details")
+  /// Loading title details…
+  internal static let seerrDetailsLoading = L10n.tr("Localizable", "seerrDetailsLoading", fallback: "Loading title details…")
+  /// Disconnect
+  internal static let seerrDisconnect = L10n.tr("Localizable", "seerrDisconnect", fallback: "Disconnect")
+  /// Disconnected from Seerr.
+  internal static let seerrDisconnected = L10n.tr("Localizable", "seerrDisconnected", fallback: "Disconnected from Seerr.")
+  /// Nothing Trending
+  internal static let seerrEmpty = L10n.tr("Localizable", "seerrEmpty", fallback: "Nothing Trending")
+  /// No trending titles are available right now.
+  internal static let seerrEmptyDescription = L10n.tr("Localizable", "seerrEmptyDescription", fallback: "No trending titles are available right now.")
+  /// That code expired. Connect Seerr again to get a new code.
+  internal static let seerrExpired = L10n.tr("Localizable", "seerrExpired", fallback: "That code expired. Connect Seerr again to get a new code.")
+  /// Getting Ready
+  internal static let seerrGettingReady = L10n.tr("Localizable", "seerrGettingReady", fallback: "Getting Ready")
+  /// Your request was approved and is being processed. Download progress isn't available yet.
+  internal static let seerrGettingReadyDescription = L10n.tr("Localizable", "seerrGettingReadyDescription", fallback: "Your request was approved and is being processed. Download progress isn't available yet.")
+  /// HTTP
+  internal static let seerrHTTP = L10n.tr("Localizable", "seerrHTTP", fallback: "HTTP")
+  /// HTTPS
+  internal static let seerrHTTPS = L10n.tr("Localizable", "seerrHTTPS", fallback: "HTTPS")
+  /// Seerr returned a different account. Disconnect and reconnect with the intended Jellyfin account.
+  internal static let seerrIdentityChanged = L10n.tr("Localizable", "seerrIdentityChanged", fallback: "Seerr returned a different account. Disconnect and reconnect with the intended Jellyfin account.")
+  /// Enter a valid hostname or IP address.
+  internal static let seerrInvalidHost = L10n.tr("Localizable", "seerrInvalidHost", fallback: "Enter a valid hostname or IP address.")
+  /// Enter a port from 1 to 65535.
+  internal static let seerrInvalidPort = L10n.tr("Localizable", "seerrInvalidPort", fallback: "Enter a port from 1 to 65535.")
+  /// Seerr returned an unreadable response.
+  internal static let seerrInvalidResponse = L10n.tr("Localizable", "seerrInvalidResponse", fallback: "Seerr returned an unreadable response.")
+  /// Enter a valid Seerr server URL.
+  internal static let seerrInvalidURL = L10n.tr("Localizable", "seerrInvalidURL", fallback: "Enter a valid Seerr server URL.")
+  /// Loading…
+  internal static let seerrLoading = L10n.tr("Localizable", "seerrLoading", fallback: "Loading…")
+  /// Looking for Media
+  internal static let seerrLookingForMedia = L10n.tr("Localizable", "seerrLookingForMedia", fallback: "Looking for Media")
+  /// Check the server address format. Include only a hostname or IP address, optional port, and optional server path.
+  internal static let seerrMalformedAddress = L10n.tr("Localizable", "seerrMalformedAddress", fallback: "Check the server address format. Include only a hostname or IP address, optional port, and optional server path.")
+  /// Add a port after the colon, or remove the colon.
+  internal static let seerrMissingPort = L10n.tr("Localizable", "seerrMissingPort", fallback: "Add a port after the colon, or remove the colon.")
+  /// Seerr did not return a session cookie. Try connecting again.
+  internal static let seerrMissingSession = L10n.tr("Localizable", "seerrMissingSession", fallback: "Seerr did not return a session cookie. Try connecting again.")
+  /// Popular Movies
+  internal static let seerrMoviePopular = L10n.tr("Localizable", "seerrMoviePopular", fallback: "Popular Movies")
+  /// Trending Movies
+  internal static let seerrMovieTrending = L10n.tr("Localizable", "seerrMovieTrending", fallback: "Trending Movies")
+  /// Upcoming Movies
+  internal static let seerrMovieUpcoming = L10n.tr("Localizable", "seerrMovieUpcoming", fallback: "Upcoming Movies")
+  /// Requests
+  internal static let seerrMyRequests = L10n.tr("Localizable", "seerrMyRequests", fallback: "Requests")
+  /// Could not reach Seerr. Check the server connection and try again.
+  internal static let seerrNetworkError = L10n.tr("Localizable", "seerrNetworkError", fallback: "Could not reach Seerr. Check the server connection and try again.")
+  /// Set Up Requests
+  internal static let seerrNotConfigured = L10n.tr("Localizable", "seerrNotConfigured", fallback: "Set Up Requests")
+  /// Add a request server address and connect your Jellyfin account in Settings.
+  internal static let seerrNotConfiguredDescription = L10n.tr("Localizable", "seerrNotConfiguredDescription", fallback: "Add a request server address and connect your Jellyfin account in Settings.")
+  /// Not requested
+  internal static let seerrNotRequested = L10n.tr("Localizable", "seerrNotRequested", fallback: "Not requested")
+  /// Partially Ready
+  internal static let seerrPartiallyReady = L10n.tr("Localizable", "seerrPartiallyReady", fallback: "Partially Ready")
+  /// Seerr denied this sign-in. Check that this Jellyfin account is allowed to sign in.
+  internal static let seerrPermissionDenied = L10n.tr("Localizable", "seerrPermissionDenied", fallback: "Seerr denied this sign-in. Check that this Jellyfin account is allowed to sign in.")
+  /// Seerr permissions
+  internal static let seerrPermissions = L10n.tr("Localizable", "seerrPermissions", fallback: "Seerr permissions")
+  /// Protocol
+  internal static let seerrProtocol = L10n.tr("Localizable", "seerrProtocol", fallback: "Protocol")
+  /// Remove the query string or fragment from the server address.
+  internal static let seerrQueryOrFragmentNotAllowed = L10n.tr("Localizable", "seerrQueryOrFragmentNotAllowed", fallback: "Remove the query string or fragment from the server address.")
+  /// Jellyfin Quick Connect code
+  internal static let seerrQuickConnectCode = L10n.tr("Localizable", "seerrQuickConnectCode", fallback: "Jellyfin Quick Connect code")
+  /// Authorize with Jellyfin
+  internal static let seerrQuickConnectInstructions = L10n.tr("Localizable", "seerrQuickConnectInstructions", fallback: "Authorize with Jellyfin")
+  /// The code is temporary. Approve it only from a Jellyfin session for the account you want to use with Seerr.
+  internal static let seerrQuickConnectSecurityNote = L10n.tr("Localizable", "seerrQuickConnectSecurityNote", fallback: "The code is temporary. Approve it only from a Jellyfin session for the account you want to use with Seerr.")
+  /// On a phone, computer, or other Jellyfin app where you are signed in, open your profile menu, choose Quick Connect, and enter this code.
+  internal static let seerrQuickConnectSteps = L10n.tr("Localizable", "seerrQuickConnectSteps", fallback: "On a phone, computer, or other Jellyfin app where you are signed in, open your profile menu, choose Quick Connect, and enter this code.")
+  /// This Seerr server does not offer Jellyfin Quick Connect. Update Seerr or check its configured Jellyfin server.
+  internal static let seerrQuickConnectUnavailable = L10n.tr("Localizable", "seerrQuickConnectUnavailable", fallback: "This Seerr server does not offer Jellyfin Quick Connect. Update Seerr or check its configured Jellyfin server.")
+  /// Ready to Watch
+  internal static let seerrReadyToWatch = L10n.tr("Localizable", "seerrReadyToWatch", fallback: "Ready to Watch")
+  /// Reconnect
+  internal static let seerrReconnect = L10n.tr("Localizable", "seerrReconnect", fallback: "Reconnect")
+  /// The connected account changed. Reconnect in Settings.
+  internal static let seerrRequestAccountChanged = L10n.tr("Localizable", "seerrRequestAccountChanged", fallback: "The connected account changed. Reconnect in Settings.")
+  /// This movie cannot be requested because it is blocked.
+  internal static let seerrRequestBlocked = L10n.tr("Localizable", "seerrRequestBlocked", fallback: "This movie cannot be requested because it is blocked.")
+  /// Request “%@”?
+  internal static func seerrRequestConfirmMessage(_ p1: Any) -> String {
+    return L10n.tr("Localizable", "seerrRequestConfirmMessage", String(describing: p1), fallback: "Request “%@”?")
+  }
+  /// Request Movie?
+  internal static let seerrRequestConfirmTitle = L10n.tr("Localizable", "seerrRequestConfirmTitle", fallback: "Request Movie?")
+  /// Request Declined
+  internal static let seerrRequestDeclined = L10n.tr("Localizable", "seerrRequestDeclined", fallback: "Request Declined")
+  /// This movie has already been requested. Its status may have changed.
+  internal static let seerrRequestDuplicate = L10n.tr("Localizable", "seerrRequestDuplicate", fallback: "This movie has already been requested. Its status may have changed.")
+  /// The request server returned an unreadable response.
+  internal static let seerrRequestInvalidResponse = L10n.tr("Localizable", "seerrRequestInvalidResponse", fallback: "The request server returned an unreadable response.")
+  /// Request Movie
+  internal static let seerrRequestMovie = L10n.tr("Localizable", "seerrRequestMovie", fallback: "Request Movie")
+  /// Could not reach the request server. Check the connection and try again.
+  internal static let seerrRequestNetworkError = L10n.tr("Localizable", "seerrRequestNetworkError", fallback: "Could not reach the request server. Check the connection and try again.")
+  /// Your account cannot request movies.
+  internal static let seerrRequestNoPermission = L10n.tr("Localizable", "seerrRequestNoPermission", fallback: "Your account cannot request movies.")
+  /// Could not confirm whether the request was sent. Check your requests before trying again.
+  internal static let seerrRequestOutcomeUnknown = L10n.tr("Localizable", "seerrRequestOutcomeUnknown", fallback: "Could not confirm whether the request was sent. Check your requests before trying again.")
+  /// Request permissions are unavailable.
+  internal static let seerrRequestPermissionsUnavailable = L10n.tr("Localizable", "seerrRequestPermissionsUnavailable", fallback: "Request permissions are unavailable.")
+  /// Requesting TV shows is not available yet.
+  internal static let seerrRequestPhaseUnavailable = L10n.tr("Localizable", "seerrRequestPhaseUnavailable", fallback: "Requesting TV shows is not available yet.")
+  /// Your movie request limit has been reached.
+  internal static let seerrRequestQuotaReached = L10n.tr("Localizable", "seerrRequestQuotaReached", fallback: "Your movie request limit has been reached.")
+  /// Request Submitted. The latest status could not be refreshed.
+  internal static let seerrRequestRefreshFailed = L10n.tr("Localizable", "seerrRequestRefreshFailed", fallback: "Request Submitted. The latest status could not be refreshed.")
+  /// This request was not allowed. Check your account permissions and request restrictions.
+  internal static let seerrRequestRestricted = L10n.tr("Localizable", "seerrRequestRestricted", fallback: "This request was not allowed. Check your account permissions and request restrictions.")
+  /// Sending request…
+  internal static let seerrRequestSending = L10n.tr("Localizable", "seerrRequestSending", fallback: "Sending request…")
+  /// Request Submitted.
+  internal static let seerrRequestSent = L10n.tr("Localizable", "seerrRequestSent", fallback: "Request Submitted.")
+  /// Check the request server address in Settings.
+  internal static let seerrRequestServerAddressInvalid = L10n.tr("Localizable", "seerrRequestServerAddressInvalid", fallback: "Check the request server address in Settings.")
+  /// Request server settings changed. Reconnect in Settings.
+  internal static let seerrRequestServerChanged = L10n.tr("Localizable", "seerrRequestServerChanged", fallback: "Request server settings changed. Reconnect in Settings.")
+  /// The request server returned HTTP %d.
+  internal static func seerrRequestServerError(_ p1: Int) -> String {
+    return L10n.tr("Localizable", "seerrRequestServerError", p1, fallback: "The request server returned HTTP %d.")
+  }
+  /// Your request session expired. Reconnect in Settings.
+  internal static let seerrRequestSessionExpired = L10n.tr("Localizable", "seerrRequestSessionExpired", fallback: "Your request session expired. Reconnect in Settings.")
+  /// This movie’s request status changed. Review its current status.
+  internal static let seerrRequestStateChanged = L10n.tr("Localizable", "seerrRequestStateChanged", fallback: "This movie’s request status changed. Review its current status.")
+  /// The Seerr server URL changed. Reconnect to Seerr at the saved URL.
+  internal static let seerrServerChanged = L10n.tr("Localizable", "seerrServerChanged", fallback: "The Seerr server URL changed. Reconnect to Seerr at the saved URL.")
+  /// Seerr returned HTTP %d.
+  internal static func seerrServerError(_ p1: Int) -> String {
+    return L10n.tr("Localizable", "seerrServerError", p1, fallback: "Seerr returned HTTP %d.")
+  }
+  /// Server URL
+  internal static let seerrServerURL = L10n.tr("Localizable", "seerrServerURL", fallback: "Server URL")
+  /// The Seerr session is no longer valid. Reconnect to Seerr.
+  internal static let seerrSessionInvalid = L10n.tr("Localizable", "seerrSessionInvalid", fallback: "The Seerr session is no longer valid. Reconnect to Seerr.")
+  /// Could not securely save the Seerr session.
+  internal static let seerrSessionStorageError = L10n.tr("Localizable", "seerrSessionStorageError", fallback: "Could not securely save the Seerr session.")
+  /// Popular TV Shows
+  internal static let seerrShowPopular = L10n.tr("Localizable", "seerrShowPopular", fallback: "Popular TV Shows")
+  /// Trending TV Shows
+  internal static let seerrShowTrending = L10n.tr("Localizable", "seerrShowTrending", fallback: "Trending TV Shows")
+  /// Status unavailable
+  internal static let seerrStatusUnavailable = L10n.tr("Localizable", "seerrStatusUnavailable", fallback: "Status unavailable")
+  /// Test Connection
+  internal static let seerrTestConnection = L10n.tr("Localizable", "seerrTestConnection", fallback: "Test Connection")
+  /// Unable to Load Requests
+  internal static let seerrTitleUnavailable = L10n.tr("Localizable", "seerrTitleUnavailable", fallback: "Unable to Load Requests")
+  /// Choose HTTP or HTTPS for the server address.
+  internal static let seerrUnsupportedProtocol = L10n.tr("Localizable", "seerrUnsupportedProtocol", fallback: "Choose HTTP or HTTPS for the server address.")
+  /// Untitled
+  internal static let seerrUntitled = L10n.tr("Localizable", "seerrUntitled", fallback: "Untitled")
+  /// Waiting for Jellyfin authorization
+  internal static let seerrWaitingForAuthorization = L10n.tr("Localizable", "seerrWaitingForAuthorization", fallback: "Waiting for Jellyfin authorization")
   /// Select all
   internal static let selectAll = L10n.tr("Localizable", "selectAll", fallback: "Select all")
   /// Selected
@@ -1520,10 +1716,10 @@ internal enum L10n {
   internal static let settings = L10n.tr("Localizable", "settings", fallback: "Settings")
   /// Short
   internal static let short = L10n.tr("Localizable", "short", fallback: "Short")
+  /// Show Clock
+  internal static let showClock = L10n.tr("Localizable", "showClock", fallback: "Show Clock")
   /// Show favorited
   internal static let showFavorited = L10n.tr("Localizable", "showFavorited", fallback: "Show favorited")
-  /// Show clock
-  internal static let showClock = L10n.tr("Localizable", "showClock", fallback: "Show Clock")
   /// Show missing episodes
   internal static let showMissingEpisodes = L10n.tr("Localizable", "showMissingEpisodes", fallback: "Show missing episodes")
   /// Show missing seasons
@@ -1566,14 +1762,12 @@ internal enum L10n {
   internal static let slowScrub = L10n.tr("Localizable", "slowScrub", fallback: "Slow scrub")
   /// Slow scrubbing
   internal static let slowScrubbing = L10n.tr("Localizable", "slowScrubbing", fallback: "Slow scrubbing")
+  /// Small
+  internal static let small = L10n.tr("Localizable", "small", fallback: "Small")
   /// Smaller
   internal static let smaller = L10n.tr("Localizable", "smaller", fallback: "Smaller")
   /// Smallest
   internal static let smallest = L10n.tr("Localizable", "smallest", fallback: "Smallest")
-  /// Small
-  internal static let small = L10n.tr("Localizable", "small", fallback: "Small")
-  /// Medium
-  internal static let medium = L10n.tr("Localizable", "medium", fallback: "Medium")
   /// Smart
   internal static let smart = L10n.tr("Localizable", "smart", fallback: "Smart")
   /// Sort
@@ -1718,7 +1912,7 @@ internal enum L10n {
   internal static let thumbImageDescription = L10n.tr("Localizable", "thumbImageDescription", fallback: "A thumbnail image used on the homepage and when browsing the library in thumbnail mode. Only applicable to video content.")
   /// Time
   internal static let time = L10n.tr("Localizable", "time", fallback: "Time")
-  /// Time format
+  /// Time Format
   internal static let timeFormat = L10n.tr("Localizable", "timeFormat", fallback: "Time Format")
   /// Time left
   internal static let timeLeft = L10n.tr("Localizable", "timeLeft", fallback: "Time left")
@@ -1730,10 +1924,6 @@ internal enum L10n {
   }
   /// Timestamp
   internal static let timestamp = L10n.tr("Localizable", "timestamp", fallback: "Timestamp")
-  /// 12-hour
-  internal static let twelveHour = L10n.tr("Localizable", "twelveHour", fallback: "12-hour")
-  /// 24-hour
-  internal static let twentyFourHour = L10n.tr("Localizable", "twentyFourHour", fallback: "24-hour")
   /// Title
   internal static let title = L10n.tr("Localizable", "title", fallback: "Title")
   /// Total time
@@ -1774,6 +1964,10 @@ internal enum L10n {
   internal static let tvShows = L10n.tr("Localizable", "tvShows", fallback: "TV shows")
   /// TV Shows
   internal static let tvShowsCapitalized = L10n.tr("Localizable", "tvShowsCapitalized", fallback: "TV Shows")
+  /// 12-hour
+  internal static let twelveHour = L10n.tr("Localizable", "twelveHour", fallback: "12-hour")
+  /// 24-hour
+  internal static let twentyFourHour = L10n.tr("Localizable", "twentyFourHour", fallback: "24-hour")
   /// Type
   internal static let type = L10n.tr("Localizable", "type", fallback: "Type")
   /// Unable to find host

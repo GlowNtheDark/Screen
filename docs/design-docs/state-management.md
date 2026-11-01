@@ -344,7 +344,7 @@ identity remain owned by their existing models. No process-wide DTO cache was ad
 | Direct playback chapter and people poster buttons | C | Chapter controls show seek positions, and people posters show cast metadata; neither renders mutable item user data. |
 | Generic nested `ItemLibrary` routes, including Media favorites | A | The route supplies `ItemState`; its existing library refreshes only when an active user-data filter or sort can change membership/order. |
 | Player Up Next Continue shelf | A | Poster presentation and actions use current shared state; its separate Resume query refreshes only for membership/order changes. |
-| Media tab's `UserViewLibrary` root | C | The root shows library names and artwork, not mutable user-data presentation. Its nested item routes are classified above. |
+| iOS My Media tab's `UserViewLibrary` root | C | The root shows library names and artwork, not mutable user-data presentation. Its nested item routes are classified above. |
 | Search suggestions | C | The separate suggestion list shows titles only. |
 | Cast/crew and other metadata-only library rows; list-style library rows | C | They show person or server metadata and do not read mutable user data for presentation. |
 | Settings poster preview | C | It uses synthetic preview state, not a live user item. |

@@ -111,18 +111,20 @@ extension TabItem {
         }
     }
 
-    static var media: TabItem {
-        TabItem(
-            id: "media",
-            title: L10n.media,
-            systemImage: "rectangle.stack.fill"
-        ) {
-            PagingLibraryView(library: UserViewLibrary())
-                .if(UIDevice.isTV) { view in
-                    view.toolbar(.hidden, for: .navigationBar)
-                }
+    static var requests: TabItem {
+        TabItem(id: "requests", title: "Requests", systemImage: "tray.and.arrow.down") {
+            RequestsView()
         }
     }
+
+    #if os(iOS)
+    static var myMedia: TabItem {
+        TabItem(id: "my-media", title: "My Media", systemImage: "rectangle.stack.fill") {
+            PagingLibraryView(library: UserViewLibrary())
+                .if(UIDevice.isTV) { view in view.toolbar(.hidden, for: .navigationBar) }
+        }
+    }
+    #endif
 
     static var liveTV: TabItem {
         TabItem(

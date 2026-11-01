@@ -25,7 +25,11 @@ final class TabCoordinator: ObservableObject {
     @Published
     var selectedTabID: String! = nil {
         didSet {
-            guard let tab = tabs.first(property: \.item.id, equalTo: selectedTabID) else { return }
+            guard let tab = tabs.first(property: \.item.id, equalTo: selectedTabID) else {
+                guard let fallbackTabID = tabs.first?.item.id, selectedTabID != fallbackTabID else { return }
+                selectedTabID = fallbackTabID
+                return
+            }
 
             tab.publisher.send(
                 .init(

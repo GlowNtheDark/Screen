@@ -84,6 +84,11 @@ struct SettingsView: View {
         #if os(tvOS)
         Form {
             serverSection
+            Section(L10n.seerrMyRequests) {
+                ChevronButton(L10n.seerr) {
+                    router.route(to: .seerrSettings)
+                }
+            }
             videoPlayerSection
             customizeSection
             clockSection
@@ -126,9 +131,9 @@ struct SettingsView: View {
         }
         #if os(iOS)
         .navigationTitle(L10n.settings)
-            .navigationBarCloseButton {
-                router.dismiss()
-            }
+        .navigationBarCloseButton {
+            router.dismiss()
+        }
         #endif
         #endif
     }
@@ -191,16 +196,16 @@ struct SettingsView: View {
             .listRowInsets(.zero)
             .listRowBackground(Color.clear)
             #if os(iOS)
-            .listRowSeparator(.hidden)
+                .listRowSeparator(.hidden)
             #endif
-            .fontWeight(.semibold)
-            .backport
-            .buttonStyle(.glassProminent.shadow(false))
+                .fontWeight(.semibold)
+                .backport
+                .buttonStyle(.glassProminent.shadow(false))
             #if os(iOS)
-            .tint(accentColor)
-            .controlSize(.large)
+                .tint(accentColor)
+                .controlSize(.large)
             #else
-            .tint(screenTheme.actions.primaryFill.swiftUIColor)
+                .tint(screenTheme.actions.primaryFill.swiftUIColor)
             #endif
             #if os(tvOS)
             .focused($sidebarHandoffFocusTarget, equals: .switchUser)

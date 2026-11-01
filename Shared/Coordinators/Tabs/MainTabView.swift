@@ -83,6 +83,9 @@ struct MainTabView: View {
     private var isAwaitingLaunchContentFocus = true
 
     @State
+    private var isSidebarPresent = true
+
+    @State
     private var homePlaybackCoordinator: FocusCoordinator?
     @State
     private var protectsHomePlaybackReturn = false
@@ -114,7 +117,8 @@ struct MainTabView: View {
         TabCoordinator {
             TabItem.contentGroup(provider: DefaultContentGroupProvider())
             TabItem.search
-            TabItem.media
+            TabItem.myMedia
+            TabItem.requests
         }
         #else
         TabCoordinator {
@@ -134,7 +138,7 @@ struct MainTabView: View {
                 observesItemState: true
             )
             TabItem.search
-            TabItem.media
+            TabItem.requests
             TabItem.settings
         }
         #endif
@@ -215,7 +219,7 @@ struct MainTabView: View {
         let requiresFocusHandoff = restoresHomeTile || (
             entersRootContent && (
                 tab.item.id == TabItem.search.id ||
-                    tab.item.id == "media" ||
+                    tab.item.id == TabItem.requests.id ||
                     tab.item.id == "settings" ||
                     tab.item.keepsContentAlive
             )
@@ -319,6 +323,18 @@ struct MainTabView: View {
                 .environmentObject(tabContentFocusHandoff)
                 .environment(\.tabItemSelected, tab.publisher)
                 .environment(\.episodeRouteTabID, tab.item.id)
+                .onReceive(
+                    tab.coordinator.$presentedSheet
+                        .combineLatest(tab.coordinator.$presentedFullScreen)
+                ) { presentedSheet, presentedFullScreen in
+                    guard isActive else { return }
+                    isSidebarPresent = presentedSheet == nil && presentedFullScreen == nil
+                }
+                .onChange(of: isActive) { _, isActive in
+                    guard isActive else { return }
+                    isSidebarPresent = tab.coordinator.presentedSheet == nil &&
+                        tab.coordinator.presentedFullScreen == nil
+                }
                 .environment(\.isTabContentFocusable, isActive && !isSidebarExpanded)
                 .id(tab.item.id)
                 .environment(\.isTabContentActive, tab.item.keepsContentAlive ? isActive : true)
@@ -515,7 +531,7 @@ struct MainTabView: View {
         }
         .background(screenTheme.surfaces.canvas.swiftUIColor)
         .overlay(alignment: .topTrailing) {
-            if isSidebarExpanded, sidebarClockEnabled {
+            if isSidebarPresent, sidebarClockEnabled {
                 SidebarClock()
                     .padding(.top, 24)
                     .padding(.trailing, 36)
@@ -582,34 +598,34 @@ struct MainTabView: View {
         }
         #if DEBUG
         .onChange(of: displayedTabID) { _, tabID in
-            guard let tabID else { return }
-            sidebarPerformanceEvent("SidebarPreviewActivated", tabID: tabID)
-            LibraryFocusDiagnostics.record(
-                "displayed-tab-changed",
-                tabID: tabID,
-                detail: "selected=\(tabCoordinator.selectedTabID ?? "-") sidebarExpanded=\(isSidebarExpanded)"
-            )
-            if let pendingSidebarFocusStart = sidebarPerformanceState.pendingFocusStart,
-               pendingSidebarFocusStart.tabID == tabID
-            {
-                sidebarPerformanceEvent(
-                    "SidebarFocusToPreview",
+                guard let tabID else { return }
+                sidebarPerformanceEvent("SidebarPreviewActivated", tabID: tabID)
+                LibraryFocusDiagnostics.record(
+                    "displayed-tab-changed",
                     tabID: tabID,
-                    latencyMilliseconds: sidebarElapsedMilliseconds(since: pendingSidebarFocusStart.uptimeNanoseconds)
+                    detail: "selected=\(tabCoordinator.selectedTabID ?? "-") sidebarExpanded=\(isSidebarExpanded)"
                 )
-                sidebarPerformanceState.pendingFocusStart = nil
+                if let pendingSidebarFocusStart = sidebarPerformanceState.pendingFocusStart,
+                   pendingSidebarFocusStart.tabID == tabID
+                {
+                    sidebarPerformanceEvent(
+                        "SidebarFocusToPreview",
+                        tabID: tabID,
+                        latencyMilliseconds: sidebarElapsedMilliseconds(since: pendingSidebarFocusStart.uptimeNanoseconds)
+                    )
+                    sidebarPerformanceState.pendingFocusStart = nil
+                }
+                if let pendingSidebarSelectionStart = sidebarPerformanceState.pendingSelectionStart,
+                   pendingSidebarSelectionStart.tabID == tabID
+                {
+                    sidebarPerformanceEvent(
+                        "SidebarSelectionToPreview",
+                        tabID: tabID,
+                        latencyMilliseconds: sidebarElapsedMilliseconds(since: pendingSidebarSelectionStart.uptimeNanoseconds)
+                    )
+                    sidebarPerformanceState.pendingSelectionStart = nil
+                }
             }
-            if let pendingSidebarSelectionStart = sidebarPerformanceState.pendingSelectionStart,
-               pendingSidebarSelectionStart.tabID == tabID
-            {
-                sidebarPerformanceEvent(
-                    "SidebarSelectionToPreview",
-                    tabID: tabID,
-                    latencyMilliseconds: sidebarElapsedMilliseconds(since: pendingSidebarSelectionStart.uptimeNanoseconds)
-                )
-                sidebarPerformanceState.pendingSelectionStart = nil
-            }
-        }
         #endif
     }
     #endif
@@ -624,12 +640,12 @@ struct MainTabView: View {
                     await tabCoordinator.route(to: route)
                 }
             }
-            #if os(tvOS)
+        #if os(tvOS)
             .environmentObject(searchFocus)
             .background(alignment: .top) {
                 FocusedPosterCinematicBackgroundView()
             }
-            #endif
+        #endif
     }
 }
 
