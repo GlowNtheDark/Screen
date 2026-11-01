@@ -36,7 +36,7 @@ with the navigation coordinators; focus events must not dismiss intermediate scr
 
 `ItemView` owns a separate coordinator initially targeting its Play action.
 TV Search uses `@FocusState` in [SearchView](../../Shared/Views/SearchView.swift) plus
-[`TVSearchFocusCoordinator`](<../../Swiftfin tvOS/Extensions/View/View-tvOS.swift>) to
+[`TVSearchFocusCoordinator`](<../../Screen tvOS/Extensions/View/View-tvOS.swift>) to
 hand sidebar Right/Select entry to the app-owned field. iOS retains `.searchable`.
 Do not assume keyboard/responder readiness proves remote focus has moved.
 

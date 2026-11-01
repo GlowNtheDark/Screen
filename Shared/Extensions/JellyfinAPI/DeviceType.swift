@@ -91,7 +91,7 @@ enum DeviceType: String, Displayable, Codable, CaseIterable {
         case let str where str.range(of: #"android|findroid"#, options: .regularExpression) != nil:
             self = .android
 
-        /* Apple devices: iOS, tvOS, iPadOS, Swiftfin, or Infuse */
+        /* Apple devices: iOS, tvOS, iPadOS, Screen, or Infuse */
         case let str where str.range(of: #"ios|tvos|ipados|swiftfin|infuse"#, options: .regularExpression) != nil:
             self = .apple
 

@@ -70,7 +70,7 @@ final class RootCoordinator: ObservableObject {
         started = true
 
         do {
-            try await SwiftfinStore.setupDataStack()
+            try await ScreenStore.setupDataStack()
             startPreferenceObservation()
         } catch {
             throw AppStartupError.dataStack(error)

@@ -35,7 +35,7 @@ final class ServerSocketManager {
             .eraseToAnyPublisher()
     }
 
-    private let logger = Logger.swiftfin()
+    private let logger = Logger.screen()
 
     private let allEvents = PassthroughSubject<JellyfinSocket.Session.Event, Never>()
     private let state = OSAllocatedUnfairLock(initialState: State())

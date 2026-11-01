@@ -127,7 +127,7 @@ final class MediaPlayerManager: ViewModel {
                 seconds = playbackItem.baseItem.startSeconds ?? .zero
                 playbackItem.manager = self
                 setSupplements()
-                snowfinSegmentCoordinator.prepare(for: playbackItem)
+                screenSegmentCoordinator.prepare(for: playbackItem)
 
                 logger.info(
                     "Playing new item",
@@ -141,7 +141,7 @@ final class MediaPlayerManager: ViewModel {
 
                 Task { _ = await playbackItem.previewImageProvider?.image(for: seconds) }
             } else {
-                snowfinSegmentCoordinator.prepare(for: nil)
+                screenSegmentCoordinator.prepare(for: nil)
             }
         }
     }
@@ -163,7 +163,7 @@ final class MediaPlayerManager: ViewModel {
     @Published
     var supplements: [any MediaPlayerSupplement] = []
 
-    lazy var snowfinSegmentCoordinator = SnowfinPlaybackSegmentCoordinator(manager: self)
+    lazy var screenSegmentCoordinator = ScreenPlaybackSegmentCoordinator(manager: self)
 
     /// Snapshot the real outgoing position before stopping the proxy can reset it.
     private(set) var previousItemStopSeconds: Duration?
@@ -459,7 +459,7 @@ final class MediaPlayerManager: ViewModel {
 
         await self.cancel()
 
-        snowfinSegmentCoordinator.reset()
+        screenSegmentCoordinator.reset()
         proxy?.stop()
         Container.shared.mediaPlayerManagerPublisher().send(nil)
         Container.shared.mediaPlayerManager.reset()

@@ -1,6 +1,6 @@
 # Product
 
-Screen is a native tvOS media client for Jellyfin, with shared Swiftfin foundations.
+Screen is a native tvOS media client for Jellyfin, with shared Screen foundations.
 Its television experience is media-first: recognizable artwork, readable metadata,
 compact actions, and clear remote focus.
 

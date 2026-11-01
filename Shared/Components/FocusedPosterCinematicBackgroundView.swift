@@ -12,7 +12,7 @@ import SwiftUI
 struct FocusedPosterCinematicBackgroundView: View {
 
     var body: some View {
-        Color.snowfinDeepNavy
+        Color.screenDeepNavy
             .ignoresSafeArea()
     }
 }

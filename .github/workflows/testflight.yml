@@ -23,12 +23,12 @@ on:
 
 jobs:
   test_build:
-    name: Build and upload Snowfin tvOS to TestFlight
+    name: Build and upload Screen tvOS to TestFlight
     runs-on: macos-26
     env:
       XCODE_VERSION: "26.6"
       PLATFORM: "tvos"
-      SCHEME: "Snowfin tvOS"
+      SCHEME: "Screen tvOS"
       BUILD_CERTIFICATE_BASE64: ${{ github.event.client_payload.BUILD_CERTIFICATE_BASE64 || secrets.BUILD_CERTIFICATE_BASE64 }}
       BUILD_PROVISION_PROFILE_BASE64: ${{ github.event.client_payload.BUILD_PROVISION_PROFILE_TVOS_BASE64 || secrets.BUILD_PROVISION_PROFILE_TVOS_BASE64 }}
       FL_PROFILE_NAME_BASE64: ${{ github.event.client_payload.PROFILE_NAME_TVOS_BASE64 || secrets.PROFILE_NAME_TVOS_BASE64 }}

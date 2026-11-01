@@ -58,7 +58,7 @@ extension SelectUserView {
                                 source: item.user.profileImageSource(
                                     client: item.server.client
                                 ),
-                                pipeline: .Swiftfin.local
+                                pipeline: .Screen.local
                             )
                             .subtleShadow()
                             .frame(width: UIDevice.isTV ? 120 : UIDevice.isPad ? 80 : 50)

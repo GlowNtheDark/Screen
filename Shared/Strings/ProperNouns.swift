@@ -127,8 +127,8 @@ extension L10n {
 
     // MARK: - Brands
 
-    static let swiftfin = "Swiftfin"
-    static let snowfin = "Snowfin"
+    static let swiftfin = "Screen"
+    static let snowfin = "Screen"
     static let screen = "Screen"
     static let jellyfin = "Jellyfin"
 
@@ -143,9 +143,9 @@ extension L10n {
     static func applicationBranded(_ value: String) -> String {
         #if os(tvOS)
         value
-            .replacingOccurrences(of: "Swiftfin", with: screen)
+            .replacingOccurrences(of: "Screen", with: screen)
             .replacingOccurrences(of: "swiftfin", with: screen)
-            .replacingOccurrences(of: "Snowfin", with: screen)
+            .replacingOccurrences(of: "Screen", with: screen)
             .replacingOccurrences(of: "snowfin", with: screen)
         #else
         value

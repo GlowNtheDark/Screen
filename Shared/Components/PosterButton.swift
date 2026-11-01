@@ -241,7 +241,7 @@ struct PosterButton<Item: Poster>: View {
         .environment(\.posterDisplayType, displayType)
         .foregroundStyle(.primary, .secondary)
         #if os(tvOS)
-        .buttonStyle(SnowfinPosterButtonStyle())
+        .buttonStyle(ScreenPosterButtonStyle())
         .buttonBorderShape(.roundedRectangle(radius: 0))
         .focused($isFocused)
         .modifier(CoordinatedPosterFocusModifier(
@@ -417,7 +417,7 @@ private struct RegisteredHomeTile: ViewModifier {
     }
 }
 
-private struct SnowfinPosterButtonStyle: ButtonStyle {
+private struct ScreenPosterButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

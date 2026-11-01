@@ -11,7 +11,7 @@ import Logging
 
 extension Logger {
 
-    static func swiftfin() -> Logger {
+    static func screen() -> Logger {
         #if os(tvOS)
         Logger(label: "com.snowfin.tvos")
         #else
@@ -20,7 +20,7 @@ extension Logger {
     }
 }
 
-struct SwiftfinConsoleHandler: LogHandler {
+struct ScreenConsoleHandler: LogHandler {
 
     var logLevel: Logger.Level = .trace
     var metadata: Logger.Metadata = [:]

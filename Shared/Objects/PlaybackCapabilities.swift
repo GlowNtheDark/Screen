@@ -17,12 +17,12 @@ enum PlaybackCapabilities {
         AVPlayer.eligibleForHDRPlayback
     }
 
-    /// Should Swiftfin handle Dolby Vision content (false) or should it be tone mapped by the server (true)?
+    /// Should Screen handle Dolby Vision content (false) or should it be tone mapped by the server (true)?
     static var dvEnabled: Bool {
         !StoredValues[.User.forceDVTranscode]
     }
 
-    /// Should Swiftfin handle HDR content (false) or should it be tone mapped by the server (true)?
+    /// Should Screen handle HDR content (false) or should it be tone mapped by the server (true)?
     static var hdrEnabled: Bool {
         !StoredValues[.User.forceHDRTranscode]
     }

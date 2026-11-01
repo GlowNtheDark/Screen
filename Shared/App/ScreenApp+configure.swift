@@ -1,0 +1,56 @@
+//
+// Swiftfin is subject to the terms of the Mozilla Public
+// License, v2.0. If a copy of the MPL was not distributed with this
+// file, you can obtain one at https://mozilla.org/MPL/2.0/.
+//
+// Copyright (c) 2026 Jellyfin & Jellyfin Contributors
+//
+
+import CoreStore
+import FactoryKit
+import Logging
+import Nuke
+import PulseLogHandler
+import UIKit
+
+extension ScreenApp {
+
+    static func configure() {
+
+        // Logging
+        LoggingSystem.bootstrap { label in
+
+            // TODO: have setting for log level
+            //       - default info, boolean to go down to trace
+            let handlers: [any LogHandler] = [PersistentLogHandler(label: label)]
+                #if DEBUG
+                    .appending(ScreenConsoleHandler())
+                #endif
+
+            var multiplexHandler = MultiplexLogHandler(handlers)
+            multiplexHandler.logLevel = .trace
+            return multiplexHandler
+        }
+
+        // CoreStore
+
+        CoreStoreDefaults.dataStack = ScreenStore.dataStack
+        CoreStoreDefaults.logger = ScreenCorestoreLogger()
+
+        // Nuke
+
+        ImageCache.shared.costLimit = 1024 * 1024 * 200 // 200 MB
+        #if os(tvOS)
+        ImageCache.shared.ttl = 1800 // 30 min
+        #else
+        ImageCache.shared.ttl = 300 // 5 min
+        #endif
+
+        ImageDecoderRegistry.shared.register { context in
+            guard let mimeType = context.urlResponse?.mimeType else { return nil }
+            return mimeType.contains("svg") ? ImageDecoders.Empty() : nil
+        }
+
+        ImagePipeline.shared = .Screen.posters
+    }
+}

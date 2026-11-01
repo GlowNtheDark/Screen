@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         scheme:
-          - "Snowfin tvOS"
+          - "Screen tvOS"
 
     runs-on: macos-26
 

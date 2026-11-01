@@ -17,11 +17,11 @@ body:
       options:
         - label: This is a **bug**, not a question or a configuration issue; Please visit our [forum or chat rooms](https://jellyfin.org/contact/) first to troubleshoot with volunteers, before creating a report.
           required: true
-        - label: This issue is **not** already reported on [GitHub](https://github.com/jellyfin/Swiftfin/issues?q=is%3Aopen+is%3Aissue).
+        - label: This issue is **not** already reported on [GitHub](https://github.com/GlowNtheDark/Screen/issues?q=is%3Aopen+is%3Aissue).
           required: true
-        - label: I have read the [Common Issues](https://github.com/jellyfin/Swiftfin/blob/main/Documentation/common_issues.md) documentation and this issue was not mentioned there.
+        - label: I have read the [Common Issues](https://github.com/GlowNtheDark/Screen/blob/main/Documentation/common_issues.md) documentation and this issue was not mentioned there.
           required: true
-        - label: I'm using an up to date version of Swiftfin; We generally do not support previous older versions. If possible, please update to the latest version before opening an issue.
+        - label: I'm using an up to date version of Screen; We generally do not support previous older versions. If possible, please update to the latest version before opening an issue.
           required: true
         - label: I agree to follow Jellyfin's [Code of Conduct](https://jellyfin.org/docs/general/community-standards.html#code-of-conduct).
           required: true
@@ -42,7 +42,7 @@ body:
       label: Reproduction steps
       description: Provide clear, step-by-step instructions that anyone can follow to reproduce this issue.
       placeholder: |
-        1. Open Swiftfin and navigate to your library
+        1. Open Screen and navigate to your library
         2. Select a video file with multiple audio tracks
         3. Start playback
         4. Attempt to access playback controls by tapping the screen
@@ -66,7 +66,7 @@ body:
     id: app-version
     attributes:
       label: Application version
-      description: The version of the installed Swiftfin app.
+      description: The version of the installed Screen app.
       placeholder: 1.3.1, 1.0.1
     validations:
       required: true

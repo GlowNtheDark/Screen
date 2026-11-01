@@ -438,7 +438,7 @@ struct MainTabView: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(SnowfinSidebarButtonStyle())
+        .buttonStyle(ScreenSidebarButtonStyle())
         .focused($focusedSidebarTabID, equals: tab.item.id)
         .onMoveCommand { direction in
             guard direction == .right else { return }
@@ -657,7 +657,7 @@ extension EnvironmentValues {
     var initialTabCandidateFocused: (() -> Void)? = nil
 }
 
-private struct SnowfinSidebarButtonStyle: ButtonStyle {
+private struct ScreenSidebarButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

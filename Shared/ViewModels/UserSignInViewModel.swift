@@ -94,7 +94,7 @@ final class UserSignInViewModel: ObservableObject {
     @Published
     private(set) var serverDisclaimer: String? = nil
 
-    private let logger = Logger.swiftfin()
+    private let logger = Logger.screen()
     private var cancellables = Set<AnyCancellable>()
 
     let server: ServerState

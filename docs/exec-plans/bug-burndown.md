@@ -20,7 +20,7 @@ The 26 initial register items plus one newly discovered Episodes boundary case w
 
 **A01/A02 remediation:** both failures shared the outer Menu/Back delivery path, while the coordinator's Intro and credits transitions remain distinct. The corrected simulator runs confirm a single Back press is consumed by the active segment layer; details are recorded below.
 
-HUD metadata root cause and current behavior: `HUDMetadata` receives the current `MediaPlayerManager.item`. Jellyfin's episode `name` is already available there. Before the fix, the HUD bottom line selected `BaseItemDto.episodeLocator` instead of the DTO's `displayTitle`/`name`; `episodeLocator` locally formats `indexNumber` as `Episode N`. `seasonEpisodeLabel` separately supplies `Sx:Ey`. No additional metadata request was needed. The current HUD title selection trims `item.name`, rejects blank text and the locally synthesized locator, then uses the localized locator as fallback; the top series line and `Sx:Ey` are retained. Both metadata lines are single-line. See [HUDMetadata](<../../Swiftfin tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+HUD.swift:19>) and [episode labels](<../../Shared/Extensions/JellyfinAPI/BaseItemDto/BaseItemDto.swift:34>).
+HUD metadata root cause and current behavior: `HUDMetadata` receives the current `MediaPlayerManager.item`. Jellyfin's episode `name` is already available there. Before the fix, the HUD bottom line selected `BaseItemDto.episodeLocator` instead of the DTO's `displayTitle`/`name`; `episodeLocator` locally formats `indexNumber` as `Episode N`. `seasonEpisodeLabel` separately supplies `Sx:Ey`. No additional metadata request was needed. The current HUD title selection trims `item.name`, rejects blank text and the locally synthesized locator, then uses the localized locator as fallback; the top series line and `Sx:Ey` are retained. Both metadata lines are single-line. See [HUDMetadata](<../../Screen tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+HUD.swift:19>) and [episode labels](<../../Shared/Extensions/JellyfinAPI/BaseItemDto/BaseItemDto.swift:34>).
 
 Current evidence does **not** establish a known-bug-free baseline. Membership/focus behavior, a controlled Search request failure, EPG geometry, and several boundaries still need the checks below. The A01/A02 remediation was signed-built and installed on the specified simulator; the temporary credits setting was restored to Show Next Episode with its original 10-second duration.
 
@@ -69,7 +69,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Reproduction:** In Settings, focus Video Player Type, Select to open its Native/Screen menu, press Back, inspect the invoking row, then Select once.
 - **Expected:** Back dismisses only the menu, the original row is visibly focused, and one Select immediately reopens the menu.
 - **Observed / evidence:** In this audit, Back closed the native menu with Video Player Type visibly highlighted. One Select immediately reopened it with Native focused and Screen still selected. No delayed corrective jump was observed.
-- **References:** [ListRowMenu](<../../Swiftfin tvOS/Components/ListRowMenu.swift:86>), [focus contract Settings row](../design-docs/focus-navigation-contract.md#settings-root-and-nested-settings), lines 271-281.
+- **References:** [ListRowMenu](<../../Screen tvOS/Components/ListRowMenu.swift:86>), [focus contract Settings row](../design-docs/focus-navigation-contract.md#settings-root-and-nested-settings), lines 271-281.
 - **Dependencies / blocker:** tvOS 27.0 simulator only; native form behavior may vary by OS/device.
 - **Next action:** Retain as not reproduced, not fixed. Repeat on physical Apple TV when testing a Settings/menu change.
 
@@ -82,7 +82,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Expected:** Dismiss only the Intro prompt, keep the same playback active, and do not seek.
 - **Observed / evidence:** The prompt disappeared and the same player returned to its HUD over the continuing episode at about 0:23. The player did not exit or jump to the intro boundary. A later Skip Intro Select check still sought forward and left playback running.
 - **Root cause / fix:** The segment overlay was a SwiftUI sibling outside the UIKit player container, so the focused overlay's Menu/Back could bypass the container's Menu owner and dismiss the player presentation. The presentation publisher also emits its new value before storage; the old subscriber discarded that value and reread stale `presentation`, leaving the full-screen presentation dismissible. The overlay is now hosted inside the UIKit container, Menu is consumed once there, and dismissibility uses the emitted presentation value.
-- **References:** [player press ownership](<../../Shared/Views/VideoPlayer/VideoPlayerContainerView/VideoPlayerContainerView.swift:1003>), [segment Back transitions](<../../Shared/Snowfin/PlaybackSegments/SnowfinPlaybackSegmentCoordinator.swift:163>), [presentation dismissibility](<../../Shared/Views/VideoPlayer/VideoPlayer.swift:94>), [focus contract](../design-docs/focus-navigation-contract.md#intro-credits-and-play-next).
+- **References:** [player press ownership](<../../Shared/Views/VideoPlayer/VideoPlayerContainerView/VideoPlayerContainerView.swift:1003>), [segment Back transitions](<../../Shared/Screen/PlaybackSegments/ScreenPlaybackSegmentCoordinator.swift:163>), [presentation dismissibility](<../../Shared/Views/VideoPlayer/VideoPlayer.swift:94>), [focus contract](../design-docs/focus-navigation-contract.md#intro-credits-and-play-next).
 - **Next action:** Keep A01 in the playback Back regression checklist; no additional fix remains for this register item.
 
 ### A02 — Credits countdown Back cancels before dismissing
@@ -92,7 +92,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Expected:** The first Back cancels only the countdown and retains both choices; a later Back dismisses the choice to the HUD without exiting playback.
 - **Observed / evidence:** First Back replaced the countdown with `AUTOPLAY CANCELLED` while keeping Keep Watching and Play Next visible. Second Back dismissed that presentation and returned to the same S10:E4 HUD/video near 24:14. Neither press exited the player. The temporary setting was restored afterward.
 - **Root cause / fix:** A02 shared A01's outer event-delivery and stale-presentation-dismissibility defect. The coordinator's transitions remain separate: countdown Back cancels and retains the next-episode choice; a later Back dismisses that choice. The UIKit container consumes each press before player dismissal and suppresses the paired Menu-ended phase after handling at press-began.
-- **References:** [player press ownership](<../../Shared/Views/VideoPlayer/VideoPlayerContainerView/VideoPlayerContainerView.swift:1003>), [countdown and choice transitions](<../../Shared/Snowfin/PlaybackSegments/SnowfinPlaybackSegmentCoordinator.swift:166>), [focus contract](../design-docs/focus-navigation-contract.md#intro-credits-and-play-next).
+- **References:** [player press ownership](<../../Shared/Views/VideoPlayer/VideoPlayerContainerView/VideoPlayerContainerView.swift:1003>), [countdown and choice transitions](<../../Shared/Screen/PlaybackSegments/ScreenPlaybackSegmentCoordinator.swift:166>), [focus contract](../design-docs/focus-navigation-contract.md#intro-credits-and-play-next).
 - **Next action:** Keep A02 in the playback Back regression checklist; no additional fix remains for this register item.
 
 ### A04 — Player → Details → Home exact tile restoration
@@ -151,7 +151,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Reproduction:** Resume The Secret Lives of Mormon Wives S3:E10 and show the HUD; separately start the Movie “Wuthering Heights”.
 - **Expected:** Episode HUD shows S3:E10, series title, and Jellyfin episode title. `Episode N` is fallback only. Movie metadata remains unchanged.
 - **Observed / evidence:** The episode HUD showed `S3:E10`, `The Secret Lives of Mormon Wives`, and `The Book of Enlightenment`; no generic `Episode 10` appeared. That title fit on one line at 1080p without colliding with controls/progress/timestamps. Movie playback showed only `"Wuthering Heights"` with its time/progress display and no episode locator. The missing/blank-title fallback is source-reviewed, not runtime-fed.
-- **References:** [HUD title selection](<../../Swiftfin tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+HUD.swift:19>), [localized fallback and Sx:Ey](<../../Shared/Extensions/JellyfinAPI/BaseItemDto/BaseItemDto.swift:134>), [metadata state ownership](../design-docs/state-management.md).
+- **References:** [HUD title selection](<../../Screen tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+HUD.swift:19>), [localized fallback and Sx:Ey](<../../Shared/Extensions/JellyfinAPI/BaseItemDto/BaseItemDto.swift:134>), [metadata state ownership](../design-docs/state-management.md).
 - **Dependencies / blocker:** Simulator had no blank-title episode. Only the observed title length was visually measured; no additional long-title sample was needed for the audit matrix.
 - **Next action:** Retain this episode and Movie pair as a regression check. If a blank-title episode becomes available, verify localized fallback runtime.
 
@@ -182,7 +182,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Expected:** The last eligible card retains focus; one press cannot wrap to a different card or change seasons.
 - **Observed / evidence:** Before the retained press-owner change, Right wrapped from S3:E11 to the currently playing S2:E2 card. The final signed build routes all four Episodes directions through one player press-event owner and clamps movement at collection bounds. On the Apple TV 4K (3rd generation), 1080p, tvOS 27.0 simulator, Right at S3:E11 remained there; Left moved once to S3:E10. Left at the first S1 selector remained on Season 1; Right at the last selector remained on Season 5. Season3 Left selected Season2 once, and Down from Season2 focused the first eligible card S2:E1. Back layering remained Episodes → HUD → hidden HUD → Details.
 - **Root cause / fix:** Episodes arrows previously fell through to native tvOS spatial movement while the surface also changed selected content from focus updates. Native geometry could wrap to a visible card. UIKit press delivery now consumes each directional press once; the Episodes surface applies one adjacent index move and keeps focus unchanged at either boundary.
-- **References:** [Episodes directional contract](../design-docs/focus-navigation-contract.md#up-episodes-surface), [press handling](<../../Swiftfin tvOS/Views/VideoPlayer/PlaybackControls/Components/PlaybackControls+PressHandling.swift:103>), [Episodes surface](<../../Swiftfin tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+Episodes.swift:245>).
+- **References:** [Episodes directional contract](../design-docs/focus-navigation-contract.md#up-episodes-surface), [press handling](<../../Screen tvOS/Views/VideoPlayer/PlaybackControls/Components/PlaybackControls+PressHandling.swift:103>), [Episodes surface](<../../Screen tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+Episodes.swift:245>).
 - **Dependencies / blocker:** None for the tested simulator paths; physical Apple TV behavior was not requested or tested.
 - **Next action:** Keep these first/last card and season-selector paths in the playback focus checklist.
 
@@ -255,7 +255,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Reproduction:** This audit changed App Font from Rounded to Serif and restored Rounded; subtitle appearance was not runtime-tested.
 - **Expected:** App-wide SwiftUI type design does not replace the separately configured rendered subtitle font.
 - **Observed / evidence:** `AppFontEnvironment` applies SwiftUI `.fontDesign`; subtitle font name/size/color remain in `subtitleConfiguration` and the VLC proxy configures subtitle rendering from that setting. Native AVPlayer remains AVKit-owned. No subtitle visual comparison was performed.
-- **References:** [App Font environment](<../../Swiftfin tvOS/App/SwiftfinApp.swift:34>), [subtitle setting](<../../Shared/Views/SettingsView/VideoPlayerSettingsView.swift:348>), [VLC subtitle font](<../../Shared/Objects/MediaPlayerManager/MediaPlayerProxy/MediaPlayerProxy+VLC.swift:99>).
+- **References:** [App Font environment](<../../Screen tvOS/App/ScreenApp.swift:34>), [subtitle setting](<../../Shared/Views/SettingsView/VideoPlayerSettingsView.swift:348>), [VLC subtitle font](<../../Shared/Objects/MediaPlayerManager/MediaPlayerProxy/MediaPlayerProxy+VLC.swift:99>).
 - **Dependencies / blocker:** Requires a subtitle-bearing sample with known configured font; none was selected in this audit.
 - **Next action:** Compare actual subtitle rendering before/after App Font change while leaving subtitle configuration unchanged, then restore Rounded.
 
@@ -265,7 +265,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Reproduction:** No dedicated hidden-control focus sweep was run in this audit.
 - **Expected:** Inactive tab content and hidden HUD controls cannot acquire focus; visible active controls retain their documented default.
 - **Observed / evidence:** MainTabView makes inactive tab content transparent, disabled, non-hit-testable and accessibility-hidden. The custom playback hierarchy structurally includes HUD only while visible; focus APIs retain a progress-first default. Runtime did not probe every hidden/inactive control.
-- **References:** [MainTabView inactive content](<../../Shared/Coordinators/Tabs/MainTabView.swift:210>), [HUD focus presentation](<../../Swiftfin tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls.swift:140>), [focus contract](../design-docs/focus-navigation-contract.md#hidden-player-controls-and-visible-hud), lines 359-384.
+- **References:** [MainTabView inactive content](<../../Shared/Coordinators/Tabs/MainTabView.swift:210>), [HUD focus presentation](<../../Screen tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls.swift:140>), [focus contract](../design-docs/focus-navigation-contract.md#hidden-player-controls-and-visible-hud), lines 359-384.
 - **Dependencies / blocker:** Runtime focus debugger exposes hosting responders rather than all SwiftUI candidates; physical hardware was excluded.
 - **Next action:** On simulator, exercise hidden HUD, dropdown, Episodes, and inactive retained tabs for accidental focus acquisition; use hardware for final focus proof.
 
@@ -297,7 +297,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Reproduction:** EPG was not opened for a visual geometry check in this audit.
 - **Expected:** Program text, row height, ruler alignment, and clipping remain correct for System, Rounded, and Serif.
 - **Observed / evidence:** Source computes EPG row/ruler dimensions from preferred UIKit text metrics with minimum heights; program and ruler text use fixed semantic styles and one-line truncation. Source does not prove rendered measurements or clipping in all app font designs.
-- **References:** [App Font environment](<../../Swiftfin tvOS/App/SwiftfinApp.swift:34>), [EPGLayout](<../../Shared/Objects/EPG/EPGLayout.swift:18>), [program cell](<../../Shared/Components/EPG/Body/Components/EPGProgramCell.swift:73>), [time ruler](<../../Shared/Components/EPG/Body/EPGTimeRuler.swift:43>).
+- **References:** [App Font environment](<../../Screen tvOS/App/ScreenApp.swift:34>), [EPGLayout](<../../Shared/Objects/EPG/EPGLayout.swift:18>), [program cell](<../../Shared/Components/EPG/Body/Components/EPGProgramCell.swift:73>), [time ruler](<../../Shared/Components/EPG/Body/EPGTimeRuler.swift:43>).
 - **Dependencies / blocker:** Requires loaded guide data and visual checks under all three font designs; Rounded was restored after the Settings test.
 - **Next action:** On simulator, capture the same EPG rows/ruler in System, Rounded, Serif; inspect baseline alignment, clipping, and row stability, then restore the user's original font.
 
@@ -332,7 +332,7 @@ F06 was discovered during A03 testing and is now PASS after the same playback-su
 ### X01 — Play Next product acceptance and native-player coverage
 
 - **Subsystem / severity / status:** Playback product acceptance/backend scope; provisional P2; **UNVERIFIED**, not a confirmed bug.
-- **Reproduction / inspection:** Source inspection of custom `SnowfinPlaybackSegmentOverlay` and `NativeVideoPlayer`; no native-player Play Next runtime sample was run.
+- **Reproduction / inspection:** Source inspection of custom `ScreenPlaybackSegmentOverlay` and `NativeVideoPlayer`; no native-player Play Next runtime sample was run.
 - **Expected:** Product acceptance and native-player parity have not been decided by this audit; treat the existing product direction separately from custom-player behavior.
 - **Observed / evidence:** The custom player attaches the four-part segment overlay; the native AVPlayer path does not. Existing tech debt calls for review of the custom transition and clarification of native-player coverage. This is an implementation-scope decision, not a runtime defect without a confirmed parity requirement.
 - **References:** [existing tech-debt entry](tech-debt.md#deferred-findings-and-review-needs), [Play Next product spec](../product-specs/play-next.md), [focus contract](../design-docs/focus-navigation-contract.md#intro-credits-and-play-next), lines 497-514.

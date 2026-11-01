@@ -13,7 +13,7 @@ document is their app-wide directional companion.
 
 ## Scope and ownership
 
-This contract covers the custom Swiftfin tvOS application. It does not apply the custom
+This contract covers the custom Screen tvOS application. It does not apply the custom
 player HUD or overlays to the separate native AVPlayer path. It documents the custom
 VLC player, tab/library/details navigation, and app-owned focus coordinators.
 
@@ -523,10 +523,10 @@ Episodes-surface content. Preserve their existing coordinator/state transitions.
 | Keep Watching action | Return focus to Play Next | Return focus to Play Next | Return focus to Play Next | Return focus to Play Next | Cancel countdown and dismiss the segment UI while the current item continues | Cancel countdown first; a later Back dismisses Play Next and returns to HUD |
 | Continue Watching shelf in Play Next | Return focus to Play Next action | Native focus within shelf; exact lower boundary runtime-dependent | Previous item | Next item | Start the selected item through existing `playNewItem` continuation semantics | Cancel countdown first when active; otherwise dismiss the segment overlay before HUD/player |
 
-**Observed.** Custom `SnowfinPlaybackSegmentOverlay` attaches to the custom player,
+**Observed.** Custom `ScreenPlaybackSegmentOverlay` attaches to the custom player,
 not native AVPlayer. Intro default focus targets Skip Intro; a seek that crosses the
 entire segment without landing inside it does not present a stale prompt. Back dismisses
-the intro prompt without seeking. `SnowfinPlaybackSegmentCoordinator` supports credits
+the intro prompt without seeking. `ScreenPlaybackSegmentCoordinator` supports credits
 modes Off, Show Next, Countdown, and immediate autoplay. The visible next-episode
 choice begins on Play Next; horizontal movement reaches Keep Watching, and Down from
 Play Next enters the gated Continue Watching shelf. Play Next uses

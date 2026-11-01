@@ -405,7 +405,7 @@ extension VideoPlayer {
             return (dismissedSupplementContainerOffset + EdgeInsets.edgePadding) * offsetPercentage
         }
 
-        private let logger = Logger.swiftfin()
+        private let logger = Logger.screen()
         private let manager: MediaPlayerManager
         private let onPresentationWillStopPlayback: () -> Void
         private let player: AnyView
@@ -734,7 +734,7 @@ extension VideoPlayer {
                 }
                 .store(in: &cancellables)
 
-            manager.snowfinSegmentCoordinator.$presentation
+            manager.screenSegmentCoordinator.$presentation
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] presentation in
                     guard let self else { return }
@@ -1038,7 +1038,7 @@ extension VideoPlayer {
                     #if DEBUG
                     EpisodePlaybackDiagnostics.logEpisodesBack(
                         manager.episodePlaybackDiagnosticID,
-                        event: "menu-pressesBegan episodes=\(containerState.isPresentingPlaybackEpisodes) dropdown=\(containerState.isPresentingPlaybackDropdown) segment=\(manager.snowfinSegmentCoordinator.presentation != nil)"
+                        event: "menu-pressesBegan episodes=\(containerState.isPresentingPlaybackEpisodes) dropdown=\(containerState.isPresentingPlaybackDropdown) segment=\(manager.screenSegmentCoordinator.presentation != nil)"
                     )
                     #endif
                     continue
@@ -1094,10 +1094,10 @@ extension VideoPlayer {
 
         private func handlePlayPauseEnded() {
             if containerState.isPresentingSegmentOverlay {
-                if let presentation = manager.snowfinSegmentCoordinator.presentation,
+                if let presentation = manager.screenSegmentCoordinator.presentation,
                    case .countdown = presentation.kind
                 {
-                    manager.snowfinSegmentCoordinator.playNextEpisode()
+                    manager.screenSegmentCoordinator.playNextEpisode()
                 }
                 return
             }
@@ -1182,11 +1182,11 @@ extension VideoPlayer {
             #if DEBUG
             EpisodePlaybackDiagnostics.logEpisodesBack(
                 manager.episodePlaybackDiagnosticID,
-                event: "handleMenuEnded-enter episodes=\(containerState.isPresentingPlaybackEpisodes) dropdown=\(containerState.isPresentingPlaybackDropdown) segment=\(manager.snowfinSegmentCoordinator.presentation != nil) scrubbing=\(containerState.isScrubbing) supplement=\(containerState.isPresentingSupplement) hud=\(containerState.isPresentingOverlay)"
+                event: "handleMenuEnded-enter episodes=\(containerState.isPresentingPlaybackEpisodes) dropdown=\(containerState.isPresentingPlaybackDropdown) segment=\(manager.screenSegmentCoordinator.presentation != nil) scrubbing=\(containerState.isScrubbing) supplement=\(containerState.isPresentingSupplement) hud=\(containerState.isPresentingOverlay)"
             )
             EpisodePlaybackDiagnostics.log(
                 manager.episodePlaybackDiagnosticID,
-                event: "back-press dropdown=\(containerState.isPresentingPlaybackDropdown) episodes=\(containerState.isPresentingPlaybackEpisodes) segment=\(manager.snowfinSegmentCoordinator.presentation != nil) scrubbing=\(containerState.isScrubbing) supplement=\(containerState.isPresentingSupplement) hud=\(containerState.isPresentingOverlay)"
+                event: "back-press dropdown=\(containerState.isPresentingPlaybackDropdown) episodes=\(containerState.isPresentingPlaybackEpisodes) segment=\(manager.screenSegmentCoordinator.presentation != nil) scrubbing=\(containerState.isScrubbing) supplement=\(containerState.isPresentingSupplement) hud=\(containerState.isPresentingOverlay)"
             )
             #endif
             if containerState.closePlaybackDropdownForMenuPress() {
@@ -1211,7 +1211,7 @@ extension VideoPlayer {
                 containerState.timer.poke()
                 releasePlaybackOverlayMenuDismissalGuard()
                 return
-            } else if manager.snowfinSegmentCoordinator.presentation != nil {
+            } else if manager.screenSegmentCoordinator.presentation != nil {
                 #if DEBUG
                 EpisodePlaybackDiagnostics.logEpisodesBack(
                     manager.episodePlaybackDiagnosticID,
@@ -1219,8 +1219,8 @@ extension VideoPlayer {
                 )
                 #endif
                 containerState.isPlaybackOverlayMenuDismissalGuarded = true
-                let consumed = manager.snowfinSegmentCoordinator.handleMenuBack()
-                if consumed, manager.snowfinSegmentCoordinator.presentation == nil {
+                let consumed = manager.screenSegmentCoordinator.handleMenuBack()
+                if consumed, manager.screenSegmentCoordinator.presentation == nil {
                     containerState.isPresentingOverlay = true
                 }
                 releasePlaybackOverlayMenuDismissalGuard()

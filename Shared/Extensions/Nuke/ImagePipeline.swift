@@ -15,7 +15,7 @@ import UIKit
 
 extension ImagePipeline {
 
-    enum Swiftfin {}
+    enum Screen {}
 
     nonisolated static func cacheKey(for url: URL) -> String? {
         guard var components = url.components else { return nil }
@@ -60,19 +60,19 @@ extension ImagePipeline {
     }
 }
 
-extension ImagePipeline.Swiftfin {
+extension ImagePipeline.Screen {
 
     /// The default `ImagePipeline` to use for images that are typically posters
     /// or server user images that should be presentable with an active connection.
-    static let posters: ImagePipeline = ImagePipeline(delegate: SwiftfinImagePipelineDelegate(logMetrics: true)) { config in
-        config.dataCache = DataCache.Swiftfin.posters
+    static let posters: ImagePipeline = ImagePipeline(delegate: ScreenImagePipelineDelegate(logMetrics: true)) { config in
+        config.dataCache = DataCache.Screen.posters
         config.isUsingPrepareForDisplay = true
 
         let dataLoader = DataLoader(
-            configuration: .swiftfin
+            configuration: .screen
         )
         dataLoader.delegate = URLSessionProxyDelegate(
-            logger: NetworkLogger.swiftfin(),
+            logger: NetworkLogger.screen(),
             delegate: nil
         )
         config.dataLoader = dataLoader
@@ -80,14 +80,14 @@ extension ImagePipeline.Swiftfin {
 
     /// The `ImagePipeline` used for images that should have longer lifetimes and usable
     /// without a connection, likes local user profile images and server splashscreens.
-    static let local: ImagePipeline = ImagePipeline(delegate: SwiftfinImagePipelineDelegate()) { config in
-        config.dataCache = DataCache.Swiftfin.local
+    static let local: ImagePipeline = ImagePipeline(delegate: ScreenImagePipelineDelegate()) { config in
+        config.dataCache = DataCache.Screen.local
 
         let dataLoader = DataLoader(
-            configuration: .swiftfin
+            configuration: .screen
         )
         dataLoader.delegate = URLSessionProxyDelegate(
-            logger: NetworkLogger.swiftfin(),
+            logger: NetworkLogger.screen(),
             delegate: nil
         )
         config.dataLoader = dataLoader
@@ -97,7 +97,7 @@ extension ImagePipeline.Swiftfin {
     static let other: ImagePipeline = ImagePipeline(configuration: .withURLCache)
 }
 
-final class SwiftfinImagePipelineDelegate: ImagePipeline.Delegate, @unchecked Sendable {
+final class ScreenImagePipelineDelegate: ImagePipeline.Delegate, @unchecked Sendable {
 
     private struct Metrics {
         var cancellations = 0
@@ -111,7 +111,7 @@ final class SwiftfinImagePipelineDelegate: ImagePipeline.Delegate, @unchecked Se
 
     private let lock = NSLock()
     private let logMetrics: Bool
-    private let logger = Logger.swiftfin()
+    private let logger = Logger.screen()
     private var lastReportedCompletions = 0
     private var metrics = Metrics()
 

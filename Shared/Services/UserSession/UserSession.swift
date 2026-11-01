@@ -19,12 +19,12 @@ final class UserSession {
     let accessToken: String
 
     lazy var client: JellyfinClient = JellyfinClient(
-        configuration: .swiftfinConfiguration(
+        configuration: .screenConfiguration(
             url: server.effectiveServerURL,
             accessToken: accessToken
         ),
-        sessionConfiguration: .swiftfin,
-        sessionDelegate: URLSessionProxyDelegate(logger: NetworkLogger.swiftfin())
+        sessionConfiguration: .screen,
+        sessionDelegate: URLSessionProxyDelegate(logger: NetworkLogger.screen())
     )
 
     @MainActor

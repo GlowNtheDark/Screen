@@ -441,7 +441,7 @@ private struct ItemLibraryBody<Content: View>: View {
             .frame(minHeight: 60)
             .contentShape(Rectangle())
         }
-        .buttonStyle(SnowfinLibraryToolbarButtonStyle())
+        .buttonStyle(ScreenLibraryToolbarButtonStyle())
         .focused($isSortControlFocused)
         .disabled(isInitialGridFocusPending)
         .onChange(of: isSortControlFocused) { _, isFocused in
@@ -525,7 +525,7 @@ private struct ItemLibraryBody<Content: View>: View {
 }
 
 #if os(tvOS)
-private struct SnowfinLibraryToolbarButtonStyle: ButtonStyle {
+private struct ScreenLibraryToolbarButtonStyle: ButtonStyle {
 
     @Environment(\.isFocused)
     private var isFocused

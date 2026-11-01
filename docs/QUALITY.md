@@ -28,7 +28,7 @@ A successful build is separate from simulator/physical Apple TV verification.
 Physical Apple TV behavior matters especially for focus, scrolling, playback, and
 performance work. State which checks ran and distinguish device evidence from
 source-only findings. Hardware-dependent player behavior needs device evidence.
-At the 2026-09-14 inspection, the `Snowfin tvOS` shared scheme had no Testables;
+At the 2026-09-14 inspection, the `Screen tvOS` shared scheme had no Testables;
 check the current scheme before choosing tests. `xcodebuild test` is
 not evidence of app coverage without an actual test target.
 
@@ -38,13 +38,13 @@ When a build is warranted under the rule above, run from the repository root.
 Inspect [CI](../.github/workflows/ci.yml),
 [Brewfile](../Brewfile), [Cartfile](../Cartfile), and the
 [contribution setup](../Documentation/contributing.md) only when setup is relevant.
-At bootstrap, CI specifies Xcode 26.6 and the `Snowfin tvOS` scheme. Verify local
+At bootstrap, CI specifies Xcode 26.6 and the `Screen tvOS` scheme. Verify local
 Xcode selection, available destinations, and existing Carthage/package artifacts
 before treating an environment failure as a source defect.
 
 For Codex interaction on the Apple TV 4K (3rd generation, 1080p) simulator, use
 [`Scripts/build-install-tvos-simulator.sh`](../Scripts/build-install-tvos-simulator.sh).
-It pins the `Snowfin tvOS` Debug product, Team ID, bundle ID, app-group entitlement,
+It pins the `Screen tvOS` Debug product, Team ID, bundle ID, app-group entitlement,
 and a dedicated DerivedData directory; it verifies Xcode's Simulator entitlement
 manifests and existing app-group registration before installing the built product
 in place. The simulator executable
@@ -62,8 +62,8 @@ installed or launched for Keychain validation.
 
 ```sh
 xcode-select -p
-xcodebuild -project Swiftfin.xcodeproj -scheme 'Snowfin tvOS' -showdestinations
-xcodebuild -project Swiftfin.xcodeproj -scheme 'Snowfin tvOS' \
+xcodebuild -project Screen.xcodeproj -scheme 'Screen tvOS' -showdestinations
+xcodebuild -project Screen.xcodeproj -scheme 'Screen tvOS' \
   -configuration Debug -destination 'generic/platform=tvOS Simulator' \
   CODE_SIGNING_ALLOWED=NO build
 ```
@@ -87,6 +87,6 @@ local CI runs tvOS only. This distinction does not waive validation for affected
 ## Final review
 
 Run `git diff --check` and inspect the task's diff (including new files).
-After builds inspect `Swiftfin.xcodeproj/project.pbxproj` for incidental rewrites.
+After builds inspect `Screen.xcodeproj/project.pbxproj` for incidental rewrites.
 Report changes, checks and their results, and material limitations concisely.
 Do not rerun passed checks without a new change, failure, or concrete concern.

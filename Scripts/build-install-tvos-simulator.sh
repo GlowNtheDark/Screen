@@ -5,7 +5,7 @@ set -euo pipefail
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 simulator_udid="058EB71A-7C11-4BBA-8030-7F13137575F5"
 simulator_name="Apple TV 4K (3rd generation) (at 1080p)"
-scheme="Snowfin tvOS"
+scheme="Screen tvOS"
 bundle_identifier="com.snowfin.tvos"
 team_identifier="36VR7266B9"
 app_group_identifier="group.com.snowfin.tvos"
@@ -24,7 +24,7 @@ fi
 
 echo "Building $scheme for $simulator_name with Simulator entitlements enabled."
 xcodebuild -quiet \
-	-project "$project_root/Swiftfin.xcodeproj" \
+	-project "$project_root/Screen.xcodeproj" \
 	-scheme "$scheme" \
 	-configuration Debug \
 	-destination "platform=tvOS Simulator,id=$simulator_udid" \
@@ -37,8 +37,8 @@ xcodebuild -quiet \
 	build
 
 app_path="$derived_data_path/Build/Products/Debug-appletvsimulator/Screen.app"
-app_entitlements="$derived_data_path/Build/Intermediates.noindex/Swiftfin.build/Debug-appletvsimulator/Snowfin tvOS.build/Screen.app-Simulated.xcent"
-extension_entitlements="$derived_data_path/Build/Intermediates.noindex/Swiftfin.build/Debug-appletvsimulator/Screen Top Shelf.build/Screen Top Shelf.appex-Simulated.xcent"
+app_entitlements="$derived_data_path/Build/Intermediates.noindex/Screen.build/Debug-appletvsimulator/Screen tvOS.build/Screen.app-Simulated.xcent"
+extension_entitlements="$derived_data_path/Build/Intermediates.noindex/Screen.build/Debug-appletvsimulator/Screen Top Shelf.build/Screen Top Shelf.appex-Simulated.xcent"
 
 if [[ ! -d "$app_path" || ! -f "$app_entitlements" || ! -f "$extension_entitlements" ]]; then
 	echo "The build did not produce the app and Simulator entitlement manifests." >&2

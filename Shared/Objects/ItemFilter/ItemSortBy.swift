@@ -76,7 +76,7 @@ extension ItemSortBy: Displayable, SupportedCaseIterable {
         }
     }
 
-    /// All `ItemSortBy` cases supported in Swiftfin
+    /// All `ItemSortBy` cases supported in Screen
     /// - This is the order displayed in `FilterView`s so order matters!
     static var supportedCases: [ItemSortBy] {
         [

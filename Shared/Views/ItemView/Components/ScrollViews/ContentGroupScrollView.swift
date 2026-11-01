@@ -35,7 +35,7 @@ extension ItemView {
 
         #if os(tvOS)
         private var backdropBaseColor: Color {
-            provider.item.type == .movie ? screenTheme.surfaces.canvas.swiftUIColor : .snowfinDeepNavy
+            provider.item.type == .movie ? screenTheme.surfaces.canvas.swiftUIColor : .screenDeepNavy
         }
         #endif
 

@@ -138,7 +138,7 @@ struct ItemView: View {
     var body: some View {
         ZStack {
             #if os(tvOS)
-            (provider.item.type == .movie ? screenTheme.surfaces.canvas.swiftUIColor : .snowfinDeepNavy)
+            (provider.item.type == .movie ? screenTheme.surfaces.canvas.swiftUIColor : .screenDeepNavy)
                 .ignoresSafeArea()
             #endif
 

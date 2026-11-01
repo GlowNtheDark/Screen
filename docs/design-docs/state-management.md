@@ -10,7 +10,7 @@ client and starts/stops connection/socket services. The shared
 logging, and Combine subscriptions. Action/state models use StatefulMacros; views
 use ObservableObject, StateObject, and local SwiftUI state for presentation.
 
-[`SwiftfinStore`](../../Shared/SwiftfinStore/SwiftfinStore.swift) manages versioned
+[`ScreenStore`](../../Shared/ScreenStore/ScreenStore.swift) manages versioned
 CoreStore/SQLite persistence and local ServerState/UserState models.
 StoredValue/Defaults hold preferences; Keychain owns credential storage. UI state
 is not an alternative source of server media truth.
@@ -45,7 +45,7 @@ completed-series activity window, deduplicates by series ID (name fallback), pre
 non-episode resume entries, then sorts the combined result by last-played activity.
 The iOS branch returns the resume response directly.
 
-[`CinematicSelectionContentGroup`](<../../Swiftfin tvOS/Objects/CinematicSelectionContentGroup.swift>)
+[`CinematicSelectionContentGroup`](<../../Screen tvOS/Objects/CinematicSelectionContentGroup.swift>)
 performs display deduplication and passes updates to the Top Shelf snapshot writer.
 The custom Play Next overlay has its own resume-library view model, so those surfaces
 share derivation logic rather than a single in-memory list.

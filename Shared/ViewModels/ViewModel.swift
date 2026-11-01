@@ -16,7 +16,7 @@ import Logging
 @MainActor
 class ViewModel: ObservableObject {
 
-    let logger = Logger.swiftfin()
+    let logger = Logger.screen()
 
     /// The current signed-in user session, if the app is authenticated.
     @Injected(\.currentUserSession)

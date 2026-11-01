@@ -50,7 +50,7 @@ final class ConnectToServerViewModel: ObservableObject {
     @Published
     var localServers: OrderedSet<ServerState> = []
 
-    let logger = Logger.swiftfin()
+    let logger = Logger.screen()
     var cancellables = Set<AnyCancellable>()
 
     @Function(\Action.Cases.connect)
@@ -73,8 +73,8 @@ final class ConnectToServerViewModel: ObservableObject {
         }
 
         let client = JellyfinClient(
-            configuration: .swiftfinConfiguration(url: url),
-            sessionDelegate: URLSessionProxyDelegate(logger: NetworkLogger.swiftfin())
+            configuration: .screenConfiguration(url: url),
+            sessionDelegate: URLSessionProxyDelegate(logger: NetworkLogger.screen())
         )
 
         let response = try await client.send(Paths.getPublicSystemInfo)

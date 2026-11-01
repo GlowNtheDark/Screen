@@ -27,7 +27,7 @@ extension ItemView {
         let localTrailers: [BaseItemDto]
         let externalTrailers: [NamedURL]
         private let label: LabelContent
-        private let logger = Logger.swiftfin()
+        private let logger = Logger.screen()
 
         init(
             localTrailers: [BaseItemDto],

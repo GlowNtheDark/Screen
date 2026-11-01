@@ -20,7 +20,7 @@ The user reported all five latest Simulator regression checks passing. The 15-cy
 ## Source areas
 
 - Fullscreen presentation ownership and cleanup: `Shared/Coordinators/Navigation/NavigationCoordinator.swift`, `Shared/Coordinators/Navigation/NavigationInjectionView.swift`, and `Shared/Coordinators/Navigation/Router.swift`.
-- Episode route, player lifecycle, and Episodes Back handling: `Shared/Views/ItemView/Components/PlayButton.swift`, `Shared/Views/VideoPlayer/VideoPlayer.swift`, `Shared/Views/VideoPlayer/VideoPlayerContainerView/VideoPlayerContainerView.swift`, and `Swiftfin tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+Episodes.swift`.
+- Episode route, player lifecycle, and Episodes Back handling: `Shared/Views/ItemView/Components/PlayButton.swift`, `Shared/Views/VideoPlayer/VideoPlayer.swift`, `Shared/Views/VideoPlayer/VideoPlayerContainerView/VideoPlayerContainerView.swift`, and `Screen tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+Episodes.swift`.
 
 ## Verification limits
 

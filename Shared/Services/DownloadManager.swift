@@ -20,7 +20,7 @@ extension Container {
 
 class DownloadManager: ObservableObject {
 
-    private let logger = Logger.swiftfin()
+    private let logger = Logger.screen()
 
     @Published
     private(set) var downloads: [DownloadTask] = []

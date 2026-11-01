@@ -145,7 +145,7 @@ extension ItemView {
             }
 
             #if os(tvOS)
-            private var snowfinMediaOverlay: some View {
+            private var screenMediaOverlay: some View {
                 HStack(alignment: .top, spacing: 70) {
                     VStack(alignment: .leading, spacing: 24) {
                         PosterImage(
@@ -195,7 +195,7 @@ extension ItemView {
             @ViewBuilder
             private var overlay: some View {
                 if provider.item.type == .movie || provider.item.type == .series {
-                    snowfinMediaOverlay
+                    screenMediaOverlay
                 } else {
                     standardOverlay
                 }

@@ -29,7 +29,7 @@ extension MediaPlayerItem {
         modifyItem: ((inout BaseItemDto) -> Void)? = nil
     ) async throws -> MediaPlayerItem {
 
-        let logger = Logger.swiftfin()
+        let logger = Logger.screen()
 
         guard let itemID = initialItem.id else {
             logger.critical("No item ID!")

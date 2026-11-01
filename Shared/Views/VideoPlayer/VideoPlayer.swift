@@ -68,8 +68,8 @@ struct VideoPlayer: View {
             PlaybackControls()
         } segmentOverlay: {
             #if os(tvOS)
-            SnowfinPlaybackSegmentOverlay(
-                coordinator: manager.snowfinSegmentCoordinator,
+            ScreenPlaybackSegmentOverlay(
+                coordinator: manager.screenSegmentCoordinator,
                 containerState: containerState
             )
             .eraseToAnyView()
@@ -86,7 +86,7 @@ struct VideoPlayer: View {
             #endif
             shouldSuppressStopDismissal = false
             manager.proxy = proxy
-            manager.snowfinSegmentCoordinator.prepare(for: manager.playbackItem)
+            manager.screenSegmentCoordinator.prepare(for: manager.playbackItem)
             #if DEBUG
             EpisodePlaybackDiagnostics.log(
                 manager.episodePlaybackDiagnosticID,
@@ -110,7 +110,7 @@ struct VideoPlayer: View {
             #if DEBUG
             EpisodePlaybackDiagnostics.logEpisodesBack(
                 manager.episodePlaybackDiagnosticID,
-                event: "swiftui-onExitCommand episodes=\(containerState.isPresentingPlaybackEpisodes) dropdown=\(containerState.isPresentingPlaybackDropdown) segment=\(manager.snowfinSegmentCoordinator.presentation != nil)"
+                event: "swiftui-onExitCommand episodes=\(containerState.isPresentingPlaybackEpisodes) dropdown=\(containerState.isPresentingPlaybackDropdown) segment=\(manager.screenSegmentCoordinator.presentation != nil)"
             )
             #endif
             containerState.containerView?.handleMenuEnded()
@@ -130,7 +130,7 @@ struct VideoPlayer: View {
         .onChange(of: containerState.isPlaybackOverlayMenuDismissalGuarded) { _, _ in
             updateCurrentPresentationDismissibility()
         }
-        .onReceive(manager.snowfinSegmentCoordinator.$presentation) { presentation in
+        .onReceive(manager.screenSegmentCoordinator.$presentation) { presentation in
             updateCurrentPresentationDismissibility(segmentOverlayIsPresented: presentation != nil)
         }
         #endif
@@ -238,7 +238,7 @@ struct VideoPlayer: View {
     #if os(tvOS)
     private func updateCurrentPresentationDismissibility() {
         updateCurrentPresentationDismissibility(
-            segmentOverlayIsPresented: manager.snowfinSegmentCoordinator.presentation != nil
+            segmentOverlayIsPresented: manager.screenSegmentCoordinator.presentation != nil
         )
     }
 

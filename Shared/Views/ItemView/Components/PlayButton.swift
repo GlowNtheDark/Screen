@@ -268,7 +268,7 @@ struct PlayButton: View {
             // Separate the focus outline from the themed Play fill without resizing the control.
             button.buttonStyle(BasicHoverButtonStyle(scalesOnInteraction: false, outlineInset: -3))
         } else {
-            button.buttonStyle(SnowfinPrimaryPlayButtonStyle())
+            button.buttonStyle(ScreenPrimaryPlayButtonStyle())
         }
         #else
         button.buttonStyle(BasicHoverButtonStyle())
@@ -388,7 +388,7 @@ struct PlayButton: View {
 }
 
 #if os(tvOS)
-private struct SnowfinPrimaryPlayButtonStyle: ButtonStyle {
+private struct ScreenPrimaryPlayButtonStyle: ButtonStyle {
 
     @Environment(\.screenTheme)
     private var screenTheme

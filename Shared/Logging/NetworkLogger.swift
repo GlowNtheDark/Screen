@@ -14,7 +14,7 @@ private let redactedMessage = "<Redacted by \(L10n.applicationBrand)>"
 
 extension NetworkLogger {
 
-    static func swiftfin() -> NetworkLogger {
+    static func screen() -> NetworkLogger {
         var configuration = NetworkLogger.Configuration()
         configuration.sensitiveHeaders = ["Authorization", "X-Emby-Token"]
         configuration.sensitiveQueryItems = ["api_key"]

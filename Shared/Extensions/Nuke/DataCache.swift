@@ -15,10 +15,10 @@ import Nuke
 //       host and only use path + query which has ids and tags
 
 extension DataCache {
-    enum Swiftfin {}
+    enum Screen {}
 }
 
-extension DataCache.Swiftfin {
+extension DataCache.Screen {
 
     static let posters: DataCache? = {
 

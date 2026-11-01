@@ -13,12 +13,12 @@ import UIKit
 
 extension JellyfinClient.Configuration {
 
-    static func swiftfinConfiguration(
+    static func screenConfiguration(
         url: URL,
         accessToken: String? = nil
     ) -> Self {
 
-        let client = "Swiftfin \(UIDevice.platform)"
+        let client = "Screen \(UIDevice.platform)"
         let deviceName = UIDevice.current.name
             .folding(options: .diacriticInsensitive, locale: .current)
             .unicodeScalars

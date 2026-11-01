@@ -39,7 +39,7 @@ class DownloadTask: NSObject, ObservableObject {
         case ready
     }
 
-    private let logger = Logger.swiftfin()
+    private let logger = Logger.screen()
     @Injected(\.currentUserSession)
     private var userSession: UserSession?
 

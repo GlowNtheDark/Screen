@@ -13,8 +13,8 @@ extension Color {
     static let jellyfinPurple = Color(red: 172 / 255, green: 92 / 255, blue: 195 / 255, opacity: 1)
 
     #if os(tvOS)
-    static let snowfinIceBlue = Color(red: 46 / 255, green: 168 / 255, blue: 255 / 255, opacity: 1)
-    static let snowfinDeepNavy = Color(red: 1 / 255, green: 3 / 255, blue: 5 / 255, opacity: 1)
+    static let screenIceBlue = Color(red: 46 / 255, green: 168 / 255, blue: 255 / 255, opacity: 1)
+    static let screenDeepNavy = Color(red: 1 / 255, green: 3 / 255, blue: 5 / 255, opacity: 1)
 
     var isLegacyJellyfinPurple: Bool {
         let components = rgbaComponents
@@ -28,7 +28,7 @@ extension Color {
 
     static var applicationDefaultAccent: Color {
         #if os(tvOS)
-        snowfinIceBlue
+        screenIceBlue
         #else
         jellyfinPurple
         #endif

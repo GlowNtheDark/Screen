@@ -11,7 +11,7 @@ import Foundation
 class Fastfile: LaneFile {
     
     private let bundleIdentifier = "org.jellyfin.swiftfin"
-    private let xcodeProject = "Swiftfin.xcodeproj"
+    private let xcodeProject = "Screen.xcodeproj"
     
     // MARK: - Version
     

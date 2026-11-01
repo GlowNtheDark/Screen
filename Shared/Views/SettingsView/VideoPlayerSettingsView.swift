@@ -38,11 +38,11 @@ struct VideoPlayerSettingsView: View {
     // MARK: - Media Segment Defaults
 
     @Default(.VideoPlayer.Segments.introBehavior)
-    private var snowfinIntroBehavior
+    private var screenIntroBehavior
     @Default(.VideoPlayer.Segments.creditsBehavior)
-    private var snowfinCreditsBehavior
+    private var screenCreditsBehavior
     @Default(.VideoPlayer.Segments.countdownDuration)
-    private var snowfinCountdownDuration
+    private var screenCountdownDuration
 
     // MARK: - Slider Defaults
 
@@ -127,11 +127,11 @@ struct VideoPlayerSettingsView: View {
     @ViewBuilder
     private var mediaSegmentSettings: some View {
         Section {
-            PlatformPicker("Intro", selection: $snowfinIntroBehavior)
-            PlatformPicker("Credits / Outro", selection: $snowfinCreditsBehavior)
+            PlatformPicker("Intro", selection: $screenIntroBehavior)
+            PlatformPicker("Credits / Outro", selection: $screenCreditsBehavior)
 
-            if snowfinCreditsBehavior == .countdownAutoplay {
-                PlatformPicker("Autoplay Countdown", selection: $snowfinCountdownDuration)
+            if screenCreditsBehavior == .countdownAutoplay {
+                PlatformPicker("Autoplay Countdown", selection: $screenCountdownDuration)
             }
         } header: {
             Text("Media Segments")

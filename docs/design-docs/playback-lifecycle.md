@@ -39,7 +39,7 @@ Do not equate disappearance with Home visibility; [navigation](navigation-stack.
 and [focus](focus-system.md) own the return path.
 
 On tvOS, the custom player's dropdown is composed in
-[`PlaybackControls+Dropdown`](<../../Swiftfin tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+Dropdown.swift>)
+[`PlaybackControls+Dropdown`](<../../Screen tvOS/Views/VideoPlayer/PlaybackControls/PlaybackControls+Dropdown.swift>)
 over the existing player layer. Its settings reuse the existing quality, audio, and
 subtitle action views; Info and Technical Details reuse the manager's media and
 playback-information supplements. `VideoPlayerContainerState` owns dropdown visibility
@@ -64,10 +64,10 @@ pauses playback nor reports progress itself.
 
 ## Segments and Play Next
 
-[`SnowfinPlaybackSegmentCoordinator`](../../Shared/Snowfin/PlaybackSegments/SnowfinPlaybackSegmentCoordinator.swift)
+[`ScreenPlaybackSegmentCoordinator`](../../Shared/Screen/PlaybackSegments/ScreenPlaybackSegmentCoordinator.swift)
 fetches Jellyfin intro/outro segments, observes time crossings and queue resolution,
 and owns skip/credits policy plus cancellable countdown state.
-[`SnowfinPlaybackSegmentOverlay`](../../Shared/Snowfin/PlaybackSegments/SnowfinPlaybackSegmentOverlay.swift)
+[`ScreenPlaybackSegmentOverlay`](../../Shared/Screen/PlaybackSegments/ScreenPlaybackSegmentOverlay.swift)
 renders a scaled 1920×1080 TV layout with current/next panels, countdown, and a
 Continue Watching shelf derived from `ResumeItemsLibrary`. Play Now is the intended
 initial action focus; directional handling controls entry into the shelf.

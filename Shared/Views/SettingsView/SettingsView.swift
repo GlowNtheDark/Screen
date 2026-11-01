@@ -100,7 +100,7 @@ struct SettingsView: View {
                 .frame(maxWidth: 400)
         }
         .background {
-            SnowfinSettingsBackground()
+            ScreenSettingsBackground()
         }
         .overlayPreferenceValue(AppFontMenuAnchorKey.self) { anchor in
             GeometryReader { geometry in
@@ -234,7 +234,7 @@ struct SettingsView: View {
         } learnMore: {
             LabeledContent(
                 L10n.applicationBrand,
-                value: L10n.playerSwiftfinDescription
+                value: L10n.playerScreenDescription
             )
             LabeledContent(
                 L10n.native,
@@ -493,7 +493,7 @@ private struct AppFontChoiceMenu: View {
         }
         .padding(8)
         .frame(width: 320)
-        .background(Color.snowfinDeepNavy.opacity(0.98), in: RoundedRectangle(cornerRadius: 18))
+        .background(Color.screenDeepNavy.opacity(0.98), in: RoundedRectangle(cornerRadius: 18))
         .overlay {
             RoundedRectangle(cornerRadius: 18)
                 .stroke(Color.white.opacity(0.2), lineWidth: 1)
@@ -510,15 +510,15 @@ private struct AppFontChoiceMenu: View {
     }
 }
 
-private struct SnowfinSettingsBackground: View {
+private struct ScreenSettingsBackground: View {
 
     var body: some View {
         ZStack {
-            Color.snowfinDeepNavy
+            Color.screenDeepNavy
 
             RadialGradient(
                 colors: [
-                    Color.snowfinIceBlue.opacity(0.14),
+                    Color.screenIceBlue.opacity(0.14),
                     Color.clear,
                 ],
                 center: .topLeading,

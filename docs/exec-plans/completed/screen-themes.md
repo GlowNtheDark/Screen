@@ -11,10 +11,10 @@ Status: implementation and final Simulator regression complete (2026-10-25).
 
 ## Checkpoint and verification
 
-- Theme implementation and related navigation/player work are recorded in commits `d2eba7e8` and `89aedf51`; shared files with intertwined changes stayed together. The local signing-team setting in `Swiftfin.xcodeproj/project.pbxproj` remains machine-specific and is intentionally excluded from commits.
+- Theme implementation and related navigation/player work are recorded in commits `d2eba7e8` and `89aedf51`; shared files with intertwined changes stayed together. The local signing-team setting in `Screen.xcodeproj/project.pbxproj` remains machine-specific and is intentionally excluded from commits.
 - SwiftFormat lint, Swift syntax parsing, the standalone Theme resolver checks, and `git diff --check` passed during commit preparation. SwiftLint exited successfully with 12 hard-coded-display-string warnings in pre-existing Play Next overlay labels.
 - No Xcode build or additional Simulator test was run during commit preparation. The Simulator outcome remains user-reported as described above.
 
 ## Follow-up build repair (2026-10-25)
 
-The first compile-only tvOS Simulator build found that color-selection assignments inside `SnowfinLibraryToolbarButtonStyle.makeBody` were interpreted as view-builder branches. Moving the palette selection into a regular helper that returns the fill/foreground pair fixed the compile error. The same `Snowfin tvOS` generic Simulator build then exited successfully; it did not install or launch the app.
+The first compile-only tvOS Simulator build found that color-selection assignments inside `ScreenLibraryToolbarButtonStyle.makeBody` were interpreted as view-builder branches. Moving the palette selection into a regular helper that returns the fill/foreground pair fixed the compile error. The same `Screen tvOS` generic Simulator build then exited successfully; it did not install or launch the app.

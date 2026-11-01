@@ -1,6 +1,6 @@
 # Screen Agent Guide
 
-Screen is a native tvOS Jellyfin client derived from Swiftfin/Snowfin.
+Screen is a native tvOS Jellyfin client built from Swiftfin foundations.
 This file is the entry point and map; deeper documents are loaded only as needed.
 
 ## Instruction priority

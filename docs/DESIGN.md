@@ -1,12 +1,12 @@
 # TV design and interaction
 
-The [Snowfin roadmap](../Documentation/Snowfin-UI-Roadmap.md) establishes fixed dark
+The [Screen roadmap](../Documentation/Screen-UI-Roadmap.md) establishes fixed dark
 surfaces, square geometry, and a media-first layout. Current TV code follows these
 conventions through [Color.swift](../Shared/Extensions/Color.swift),
 [BasicHoverButtonStyle.swift](../Shared/Extensions/ButtonStyle/BasicHoverButtonStyle.swift),
 and [MainTabView.swift](../Shared/Coordinators/Tabs/MainTabView.swift).
 
-- Use the existing `snowfinDeepNavy` background and Ice Blue (`#2EA8FF`) accent.
+- Use the existing `screenDeepNavy` background and Ice Blue (`#2EA8FF`) accent.
   The background should not change with the focused title.
 - Prefer square geometry for Screen-owned controls/artwork. Reuse existing styles;
   do not impose a new design system on unrelated screens.

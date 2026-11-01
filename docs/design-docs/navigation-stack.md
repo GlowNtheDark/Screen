@@ -22,7 +22,7 @@ Consequently, `path.isEmpty`/`isRootOfPath` alone cannot prove that Home is visi
 A details presentation may have its own player presentation above it.
 
 Home Continue Watching routes `.item` via
-[`CinematicSelectionContentGroup`](<../../Swiftfin tvOS/Objects/CinematicSelectionContentGroup.swift>).
+[`CinematicSelectionContentGroup`](<../../Screen tvOS/Objects/CinematicSelectionContentGroup.swift>).
 [`NavigationRoute+Item`](../../Shared/Coordinators/Navigation/NavigationRoute/NavigationRoute+Item.swift)
 creates an `ItemContentGroupProvider`/`ItemView`. `PlayButton` routes a full-screen
 player from that details environment. Dismiss the player at its own level.
