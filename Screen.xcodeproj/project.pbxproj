@@ -623,7 +623,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Add Homebrew to the path to support Apple Silicon Homebrew SwiftFormat installations\nexport PATH=/opt/homebrew/bin:$PATH\n\n# Skip phase if the action is not build (ie. analyze, archive, etc).\nif [ \"$ACTION\" != \"build\" ]; then\n    exit 0\nfi\n\nif which swiftformat >/dev/null; then\n    swiftformat .\nelse\n    echo \"error: SwiftFormat not installed, check contributing.md for installation instructions.\"\nfi\n";
+			shellScript = "# Check formatting without rewriting source; CI enforces this check.\nexport PATH=/opt/homebrew/bin:$PATH\n\nif which swiftformat >/dev/null; then\n    if swiftformat . --lint --config .swiftformat --quiet; then\n        exit 0\n    else\n        echo \"warning: SwiftFormat found formatting differences; see the CI format check.\"\n    fi\nelse\n    echo \"warning: SwiftFormat not installed; see contributing.md for setup.\"\nfi\n";
 		};
 		E1A1B5C42F00000000000002 /* Run SwiftLint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -642,7 +642,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\"\n\nif command -v swiftlint >/dev/null; then\n  swiftlint lint\nelse\n  echo \"warning: SwiftLint not installed. Run 'brew bundle --file Brewfile' from the repository root.\"\nfi\n";
+			shellScript = "export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\"\n\nif command -v swiftlint >/dev/null; then\n  cd \"$SRCROOT\"\n  swiftlint_input_list=\"$DERIVED_FILE_DIR/swiftlint-input-files\"\n  if ! git ls-files -z -- '*.swift' > \"$swiftlint_input_list\" || [ ! -s \"$swiftlint_input_list\" ]; then\n    echo \"error: Could not enumerate tracked Swift files for SwiftLint.\"\n    exit 1\n  fi\n  xargs -0 swiftlint lint < \"$swiftlint_input_list\"\nelse\n  echo \"warning: SwiftLint not installed. Run 'brew bundle --file Brewfile' from the repository root.\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
