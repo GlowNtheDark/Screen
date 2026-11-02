@@ -25,7 +25,9 @@ focus to the section row, and Up from that row closes the dropdown. Back/Menu fi
 dismisses an open selection popover; at the dropdown root it closes the dropdown.
 Only a later Back applies the existing player-exit behavior. Opening or browsing the
 dropdown does not change playback, session, or progress semantics. Credits and Play
-Next remain a separate playback state. The native AVPlayer path is unchanged.
+Next remain a separate playback state. Entering the background cancels an active
+next-episode countdown and retains the manual Play Next choice; returning to the app
+does not restart the countdown. The native AVPlayer path is unchanged.
 
 The custom tvOS HUD keeps episode/title metadata at the lower left. Its primary
 transport is the progress bar, with a small Play/Pause status symbol immediately to

@@ -441,6 +441,14 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
                 )
             }
 
+            // Background cancellation may race with the final sleep resuming.
+            guard !Task.isCancelled,
+                  self.currentItemID == countdownItemID,
+                  self.activeSegment?.id == segment.id,
+                  !self.cancelledCountdownSegmentIDs.contains(segment.id),
+                  self.presentation?.kind == .countdown
+            else { return }
+
             self.log("Credits countdown completed", segment: segment)
             self.countdownTask = nil
             self.playNextEpisode()

@@ -113,6 +113,7 @@ struct VideoPlayerViewShim: View {
         .persistentSystemOverlays(.hidden)
         .toolbar(.hidden, for: .navigationBar)
         .onSceneDidEnterBackground {
+            manager.screenSegmentCoordinator.cancelCountdown()
             if Defaults[.VideoPlayer.Transition.pauseOnBackground] {
                 manager.setPlaybackRequestStatus(status: .paused)
             }
