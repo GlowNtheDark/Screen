@@ -6,7 +6,8 @@ project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 simulator_udid="058EB71A-7C11-4BBA-8030-7F13137575F5"
 simulator_name="Apple TV 4K (3rd generation) (at 1080p)"
 scheme="Screen tvOS"
-bundle_identifier="com.snowfin.tvos"
+bundle_identifier="com.screen.tvos"
+extension_bundle_identifier="com.screen.tvos.topshelf"
 team_identifier="36VR7266B9"
 app_group_identifier="group.com.snowfin.tvos"
 derived_data_path="${SCREEN_TVOS_SIMULATOR_DERIVED_DATA_PATH:-/Volumes/External HD/Xcode/DerivedData/Screen-Codex-TVOS-Simulator}"
@@ -54,7 +55,7 @@ extension_app_group="$(/usr/libexec/PlistBuddy -c 'Print :com.apple.security.app
 if [[ "$product_bundle_identifier" != "$bundle_identifier" \
 	|| "$app_identifier" != "$team_identifier.$bundle_identifier" \
 	|| "$app_group" != "$app_group_identifier" \
-	|| "$extension_identifier" != "$team_identifier.$bundle_identifier.topshelf" \
+	|| "$extension_identifier" != "$team_identifier.$extension_bundle_identifier" \
 	|| "$extension_app_group" != "$app_group_identifier" ]]; then
 	echo "The built Simulator entitlements do not match the configured app identity." >&2
 	/usr/libexec/PlistBuddy -c Print "$app_entitlements" >&2

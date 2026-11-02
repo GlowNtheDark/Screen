@@ -44,21 +44,44 @@ before treating an environment failure as a source defect.
 
 For Codex interaction on the Apple TV 4K (3rd generation, 1080p) simulator, use
 [`Scripts/build-install-tvos-simulator.sh`](../Scripts/build-install-tvos-simulator.sh).
-It pins the `Screen tvOS` Debug product, Team ID, bundle ID, app-group entitlement,
+It pins the `Screen tvOS` Debug product, local Team ID, bundle ID, app-group entitlement,
 and a dedicated DerivedData directory; it verifies Xcode's Simulator entitlement
 manifests and existing app-group registration before installing the built product
 in place. The simulator executable
 uses an ad hoc code signature, while Xcode's `Screen.app-Simulated.xcent` carries
-`application-identifier` (`36VR7266B9.com.snowfin.tvos`) and
+`application-identifier` (`36VR7266B9.com.screen.tvos`) and
 `com.apple.security.application-groups` (`group.com.snowfin.tvos`). The application
-identifier is also the default Keychain access group for this target. Keep the app
-installed and use the script for updates; do not uninstall it or use
-`xcodebuild install`, which can replace the app with a different launcher product
-and create a new data container.
+identifier is also the default Keychain access group for this target. The Top Shelf
+extension uses `com.screen.tvos.topshelf` and keeps the same App Group entitlement.
+Physical-device signing requires App IDs and provisioning profiles for both new
+bundle identifiers, with the existing App Group enabled for each. A Simulator build
+does not verify Apple Developer portal registration or physical-device profiles.
+
+The new `com.screen.tvos` identity installs separately from the legacy
+`com.snowfin.tvos` app and receives a separate application container. The CoreStore
+database filename remains `Swiftfin.sqlite`, but the new app does not automatically
+read the old app's container. Jellyfin tokens and Seerr sessions use KeychainSwift
+without an explicit shared access group, so they may not be available to the new
+identity. Any standard UserDefaults entries use the app's bundle domain; custom
+named suites retain their existing names but were not runtime-verified across this
+identity change.
+Shared Top Shelf data remains in `group.com.snowfin.tvos`.
+
+Do not uninstall the legacy app or copy its database, Keychain credentials, or
+preferences as part of this identity change. A later migration needs a designed,
+signed export/import path (or an explicitly provisioned shared access group),
+backups, and a tested rollback plan. This build does not migrate credentials. Keep
+the legacy app installed; use the script for updates after the new app-group
+container is registered. Do not use `xcodebuild install`, which can replace the app
+with a different launcher product and create a new data container.
 
 The generic simulator command below is compile-only. `CODE_SIGNING_ALLOWED=NO`
 does not produce the Simulator entitlement manifests and its product must not be
 installed or launched for Keychain validation.
+
+The Xcode `Run SwiftFormat` phase is lint-only and never rewrites source files.
+Formatting differences are reported as a build warning; the pull-request workflow
+keeps the strict, non-mutating SwiftFormat check.
 
 ```sh
 xcode-select -p
