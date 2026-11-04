@@ -1148,6 +1148,7 @@ extension VideoPlayer {
                         event: "menu-pressesBegan episodes=\(containerState.isPresentingPlaybackEpisodes) dropdown=\(containerState.isPresentingPlaybackDropdown) segment=\(manager.screenSegmentCoordinator.presentation != nil)"
                     )
                     #endif
+                    handleMenuEnded()
                     continue
                 default:
                     let defaultAction: () -> Void = { [weak self] in
