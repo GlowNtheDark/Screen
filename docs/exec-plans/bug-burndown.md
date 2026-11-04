@@ -1,22 +1,13 @@
 # Screen bug-burn-down register
 
 Audit date: 2026-10-10
-Scope: A01/A02 shared playback Back-path fix, B01 sidebar-return fix, A03 Episodes focus-restoration fix, and focused simulator acceptance; other register entries retain their prior evidence.
-Original audit baseline: `8da2e06b1935bb7fa86b2b08a0705acf6d1dea2f` on `codex/phase1-shared-item-state`. B01 follow-up started from `aba7494196f8be6dba4a32542d3b00b4fc609776` on the same branch; its remediation is included in commit `89aedf51`.
+Scope: Final runtime verification of outstanding Home state, Search, playback focus/layering, presentation, and regression gaps after the A01/A02, B01, A03, and F06 checkpoints; prior evidence is retained.
+Original audit baseline: `8da2e06b1935bb7fa86b2b08a0705acf6d1dea2f` on `codex/phase1-shared-item-state`. B01 follow-up started from `aba7494196f8be6dba4a32542d3b00b4fc609776` on the same branch and was checkpointed before the current verification.
 Runtime target: Apple TV 4K (3rd generation), 1080p, tvOS 27.0 simulator. No physical Apple TV was used.
 
 ## Executive summary
 
-**Latest focused status (2026-10-28):** episode-artwork playback after 15 consecutive
-cycles, player presentation cleanup, Episodes Back, player return to Show Details, and
-Show Details → Home focus restoration passed in the user-reported Simulator run below.
-English audio preference is now Simulator-verified; the Next Episode countdown ring
-also passed its focused check below. Quality,
-Audio, Subtitles, and nested-picker Back need dedicated regression coverage. The
-classification counts that follow describe the original audit checkpoint, not these
-new playback findings.
-
-The 26 initial register items plus one newly discovered Episodes boundary case were reviewed: **0 confirmed open bugs**, **13 runtime passes**, **8 source-verified cases with runtime coverage still incomplete**, **1 previously reported issue not reproduced**, **5 unverified cases**, and **0 blocked cases**. No P0 was found. A01, A02, A03, B01, and F06 pass their focused simulator acceptance paths; the original A03 cross-season reproduction and its correction are recorded below.
+The 26 initial register items plus one newly discovered Episodes boundary case were reviewed: **0 confirmed open bugs**, **13 runtime passes**, **8 source-verified cases with runtime coverage still incomplete**, **1 previously reported issue not reproduced**, **4 unverified cases**, and **1 blocked case**. No P0 was found. A01, A02, A03, B01, and F06 pass their focused simulator acceptance paths; this verification added partial Home, Episodes, and navigation evidence but did not close the remaining server-state, request-failure, EPG, subtitle, or full focus-matrix gaps.
 
 **A01/A02 remediation:** both failures shared the outer Menu/Back delivery path, while the coordinator's Intro and credits transitions remain distinct. The corrected simulator runs confirm a single Back press is consumed by the active segment layer; details are recorded below.
 
@@ -32,8 +23,8 @@ Current evidence does **not** establish a known-bug-free baseline. Membership/fo
 | PASS | 13 | A01, A02, A03, A04, A05, B01, C02, D01, D03, E03, F01, F03, F06 |
 | SOURCE VERIFIED | 8 | B02-B07, E02, F02 |
 | NOT REPRODUCED | 1 | C01 |
-| UNVERIFIED | 5 | B08, D02, E01, F04, F05 |
-| BLOCKED | 0 | — |
+| UNVERIFIED | 4 | B08, D02, F04, F05 |
+| BLOCKED | 1 | E01 |
 
 Severity describes the impact if a behavior regresses, not its current status. Across the 27 tracked items: **16 P1, 10 P2, 1 P3, 0 P0**. Confirmed open bugs: **0**.
 
@@ -44,7 +35,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Subsystem / severity / status:** Playback Episodes focus restoration; P1; **PASS**.
 - **Reproduction:** On the 2026-09-28 simulator run, select S2:E1 from Season 2, close Episodes, then reopen it and press Right once.
 - **Expected:** Reopening selects the current playing season and focuses the current episode card (S2:E1); Right then advances within that episode shelf.
-- **Observed / evidence:** The original Right-to-Season-3 reproduction passed on the signed Apple TV 4K (3rd generation), 1080p, tvOS 27.0 simulator after the fix. Same-season S3:E11 and cross-season S2:E1 reopens focused the currently playing card; selecting S2:E2 started it and the next reopen focused S2:E2. Back closed Episodes to the HUD. Up from the S3:E11 card focused Season 3; Left selected Season 2 in one step; Down focused S2:E1 because S3:E11 is absent there. After acquisition, focus remained stable and no corrective jump occurred.
+- **Observed / evidence:** The original Right-to-Season-3 reproduction passed on the signed Apple TV 4K (3rd generation), 1080p, tvOS 27.0 simulator after the fix. Same-season S3:E11 and cross-season S2:E1 reopens focused the currently playing card; selecting S2:E2 started it and the next reopen focused S2:E2. In this final verification, S2:E2 reopened focused; changing the selector to Season 1 and pressing Down focused S1:E1 because S2:E2 is absent there; Left at S1:E1 retained that boundary. Back closed Episodes to the HUD, then separate presses hid the HUD and returned to the original Details route. No corrective jump occurred. Slow-loading acquisition was not stress-tested because cached season data loaded quickly.
 - **Root cause / fix:** The shelf's old `focus(_:)` scrolled and assigned `focusedTarget` before the matching episode Button registered. After season/item replacement, the default-focus request could target a candidate that did not yet exist, leaving focus with the selector. The shelf now waits for the target card's `onAppear` registration and issues one deduplicated focus request. During acquisition, only the requested card is an eligible episode Button and season chips are non-focusable. Episodes directional input is consumed at the player press-event owner and converted into a unique move request; the surface applies one-step movement and clamps boundaries instead of competing with native spatial focus.
 - **References:** [tech-debt evidence](tech-debt.md#deferred-findings-and-review-needs), [Episodes contract](../design-docs/focus-navigation-contract.md#up-episodes-surface), lines 466-480, and [playback focus notes](../design-docs/focus-system.md).
 - **Dependencies / blocker:** None for the verified simulator paths. A truly missing episode uses the first eligible card; this is source-reviewed, while the cross-season fallback to S2:E1 was runtime-tested.
@@ -191,12 +182,12 @@ Severity describes the impact if a behavior regresses, not its current status. A
 ### B02 — Focused Home tile updates live
 
 - **Subsystem / severity / status:** Home shared item state; P2; **SOURCE VERIFIED**.
-- **Reproduction:** Not performed in this audit; required runtime path is to keep a Home tile focused while accepted watched, favorite, or playback progress changes.
+- **Reproduction:** Final verification focused Futurama S10:E7 on Home, opened its Details, temporarily changed Favorite from off to on, and returned; then restored Favorite to off.
 - **Expected:** Presentation updates in place, preserving tile identity and focus without a corrective jump.
-- **Observed / evidence:** Source sends accepted item updates through session-scoped `ItemState`; poster/tile presentation observes that state while collection identity stays local. Recent runtime showed other Details/episode card updates, not this exact focused Home tile case.
+- **Observed / evidence:** The Home tile displayed its heart badge after returning from Details, without a tab switch or manual refresh. Pressing Right then advanced from Futurama S10:E7 to NCIS, confirming Futurama had been the restoration origin. Favorite was toggled back off and the badge disappeared. This is a reversible poster-state and focus-return check, but it did not mutate state while Home remained visible/focused or test an unfocused visible tile; those live-update cases remain incomplete. Source sends accepted item updates through session-scoped `ItemState`; poster/tile presentation observes that state while collection identity stays local.
 - **References:** [state-management ownership and migration](../design-docs/state-management.md#existing-propagation-and-current-stale-state-paths), lines 138-165 and 260-288.
-- **Dependencies / blocker:** Requires a safe item with known starting state and a server-accepted watched/favorite/progress update.
-- **Next action:** Runtime-test one reversible Favorite update and one progress update while the same Home tile remains focused; restore Favorite afterward.
+- **Dependencies / blocker:** Favorite state was recorded as off and restored. A direct in-place update and an unfocused visible-tile update still need a server-accepted progress/state event; no separate test feed is configured.
+- **Next action:** On a safe test item, verify one direct progress update on a focused tile and one update on an unfocused visible tile, preserving exact Home focus.
 
 ### B03 — Focused Continue item disappears and receives fallback focus
 
@@ -205,7 +196,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Expected:** Focus resolves deterministically to the nearest valid tile in the original row, then the row's first tile, then the first valid Home tile.
 - **Observed / evidence:** `FocusCoordinator.resolveHomeReturn` implements exact item → same-series replacement → nearest original-row tile → first available Home tile. Runtime membership disappearance/fallback was not tested.
 - **References:** [focus fallback](<../../Shared/Objects/FocusCoordinator.swift:326>), [state-management Home invalidation](../design-docs/state-management.md#existing-propagation-and-current-stale-state-paths), lines 179-186.
-- **Dependencies / blocker:** Requires a safe Continue item and a removable membership change; no blocker prevents a controlled future test.
+- **Dependencies / blocker:** Not exercised in this pass. The available Continue entries are real Jellyfin user data, and no disposable item with a recorded/restorable watched and resume baseline was identified.
 - **Next action:** Verify the fallback chain with test content, including when the exact item and then its row are absent.
 
 ### B04 — New Continue item appears after resume threshold
@@ -215,7 +206,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Expected:** Home re-queries affected Continue membership without manual refresh and adds the item in the right order.
 - **Observed / evidence:** `ResumeItemsLibrary` requests membership refresh when positive playback ticks arrive for an item not already present; acknowledged updates carry item identity/revision and Home refresh is targeted. No absent-item threshold transition was tested.
 - **References:** [ResumeItemsLibrary membership decision](<../../Shared/Objects/Libraries/ResumeItemsLibrary.swift:51>), [state-management Continue rules](../design-docs/state-management.md#continue-watching-and-refresh), lines 39-61 and 149-155.
-- **Dependencies / blocker:** Requires a safe item absent from Home Continue and a server resume threshold; restore/clear the resulting progress where practical.
+- **Dependencies / blocker:** Not exercised in this pass. No disposable item absent from Continue with a restorable server baseline was identified; the resume threshold must be measured from acknowledged updates, not assumed.
 - **Next action:** Record the item's pre-test membership and position, cross the server threshold, verify Home ordering, then restore the starting position/state.
 
 ### B05 — Existing Continue progress updates while its tile stays onscreen
@@ -225,7 +216,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Expected:** Its label/bar update without hover, click, navigation, or manual refresh; focus identity remains stable.
 - **Observed / evidence:** Typed progress ticks patch the same session item state and tvOS poster/card reads that state. Home progress presentation without an actual playback update is not proof of live refresh.
 - **References:** [ItemState update](<../../Shared/Objects/ItemState.swift:34>), [PagingLibraryViewModel update](<../../Shared/Objects/PagingLibrary/PagingLibraryViewModel.swift:176>), [state-management](../design-docs/state-management.md#existing-propagation-and-current-stale-state-paths), lines 149-155.
-- **Dependencies / blocker:** Safe Continue item, known starting ticks, and one acknowledged progress update.
+- **Dependencies / blocker:** Not exercised in this pass; requires a disposable Continue item and an exact starting resume position so the server-backed progress mutation can be restored or accurately reported.
 - **Next action:** Validate the visible focused tile with one small progress change, then restore or document the resulting resume position.
 
 ### B06 — Episode completion replaces Continue with Next Up
@@ -235,7 +226,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Expected:** Finished item leaves or is replaced in Continue, correct Next Up item/order appears, and focus falls back deterministically.
 - **Observed / evidence:** Existing runtime evidence says the finished episode became watched and Continue advanced to the next episode; it does not establish focused-Home-card disappearance and replacement behavior. Source uses targeted membership invalidation and revision guards.
 - **References:** [state-management episode completion evidence](../design-docs/state-management.md#migration-coverage-and-remaining-scope), lines 298-313; [Continue membership rules](../design-docs/state-management.md#continue-watching-and-refresh), lines 41-61.
-- **Dependencies / blocker:** Requires a safe episode near completion, known Continue/Next Up ordering, and server state restoration plan. No full-episode playback was done in this audit.
+- **Dependencies / blocker:** Not exercised in this pass. Requires a disposable near-end episode, recorded Continue/Next Up state, and a restoration plan; no full episode was completed.
 - **Next action:** Use an explicit near-end test item, capture before/after server and Home memberships, and verify focus on the replacement or deterministic fallback.
 
 ### B07 — Series Mark Unwatched propagates through loaded rows and Home
@@ -245,18 +236,17 @@ Severity describes the impact if a behavior regresses, not its current status. A
 - **Expected:** Loaded episode states and Continue membership update; unrelated shelves remain stable and Home needs no manual reload.
 - **Observed / evidence:** Prior simulator evidence reports watched/progress indicators changed in loaded rows and Arcane was removed from Continue after reset. Source reconciles exact loaded descendant IDs and targets only affected Home collections. Stability of unrelated shelves was not explicitly captured.
 - **References:** [state-management reconciliation/runtime evidence](../design-docs/state-management.md#migration-coverage-and-remaining-scope), lines 290-313; [notification reconciliation](<../../Shared/Services/Notifications.swift:152>).
-- **Dependencies / blocker:** A safe series with known episode states; changing server watched state requires restoration.
+- **Dependencies / blocker:** Not repeated in this pass. The existing Arcane evidence is retained; there is no disposable series with all descendant watched/resume states recorded and restorable, so bulk Mark Unwatched was not invoked.
 - **Next action:** Repeat only with recorded before-state; assert all loaded children, Continue, unrelated rows, and focus, then restore the initial state.
-- **Current implementation acceptance (2026-10-28):** Jamie accepted the episode watched/progress presentation and Continue Watching selection in user testing. This covers the exercised behavior only; focused in-place progress updates, membership add/remove, completion/Next Up replacement, deterministic fallback focus, descendant reconciliation, and unrelated-shelf stability are not a completed matrix. Keep B02–B07 edge cases open.
 
 ### E02 — App Font is independent from subtitle font settings
 
 - **Subsystem / severity / status:** Typography/subtitle configuration; P2; **SOURCE VERIFIED**.
-- **Reproduction:** This audit changed App Font from Rounded to Serif and restored Rounded; subtitle appearance was not runtime-tested.
+- **Reproduction:** In this final verification, Settings visibly showed App Font = Rounded; a subtitle-bearing S2:E2 playback frame displayed captions. System/Rounded/Serif comparison was not performed.
 - **Expected:** App-wide SwiftUI type design does not replace the separately configured rendered subtitle font.
-- **Observed / evidence:** `AppFontEnvironment` applies SwiftUI `.fontDesign`; subtitle font name/size/color remain in `subtitleConfiguration` and the VLC proxy configures subtitle rendering from that setting. Native AVPlayer remains AVKit-owned. No subtitle visual comparison was performed.
+- **Observed / evidence:** `AppFontEnvironment` applies SwiftUI `.fontDesign`; subtitle font name/size/color remain in `subtitleConfiguration` and the VLC proxy configures subtitle rendering from that setting. Native AVPlayer remains AVKit-owned. Rounded and a visible subtitle track were observed, but subtitle rendering was not compared across app-font settings.
 - **References:** [App Font environment](<../../Screen tvOS/App/ScreenApp.swift:34>), [subtitle setting](<../../Shared/Views/SettingsView/VideoPlayerSettingsView.swift:348>), [VLC subtitle font](<../../Shared/Objects/MediaPlayerManager/MediaPlayerProxy/MediaPlayerProxy+VLC.swift:99>).
-- **Dependencies / blocker:** Requires a subtitle-bearing sample with known configured font; none was selected in this audit.
+- **Dependencies / blocker:** A subtitle-bearing sample was available, but this verification did not change App Font or inspect/record the subtitle-font setting. No setting was changed in this pass.
 - **Next action:** Compare actual subtitle rendering before/after App Font change while leaving subtitle configuration unchanged, then restore Rounded.
 
 ### F02 — Hidden/inactive controls cannot acquire focus
@@ -274,9 +264,9 @@ Severity describes the impact if a behavior regresses, not its current status. A
 ### B08 — Home vertical shelf focus regression matrix
 
 - **Subsystem / severity / status:** Home vertical focus; P1; **UNVERIFIED**.
-- **Reproduction:** Current audit checked Continue → Recently Added Movies → Recently Added TV Shows, then one Up back to the exact Promising Young Woman tile.
+- **Reproduction:** This pass focused the first Continue tile (The Secret Lives of Mormon Wives S3:E11), moved Down to Circle in Recently Added Movies, then Up; it also entered the Home sidebar and returned with Right.
 - **Expected:** Never skip an adjacent shelf; choose nearest visible horizontal position; choose deterministic fallback for short shelves; immediate reverse restores exact origin; scrolled offsets and Details return remain correct; one press means one transition.
-- **Observed / evidence:** In the tested pair, Down selected the nearest visible column and Up restored the exact origin. Short-shelf fallback, horizontally scrolled row offset, Details return, and all boundary combinations were not exercised here. Prior implementation work passed the focused vertical scenario, but does not cover this full matrix.
+- **Observed / evidence:** Down selected Circle in the aligned first column; Up restored the exact S3:E11 tile. Left entered the sidebar and Right restored that same tile. Short-shelf fallback, horizontally scrolled row offset, Details return from a scrolled shelf, and all Home shelf boundaries were not exercised in this pass. Prior implementation work passed the focused vertical scenario, but the full matrix remains unverified.
 - **References:** [FocusCoordinator Home routing](<../../Shared/Objects/FocusCoordinator.swift:63>), [focus contract Home](../design-docs/focus-navigation-contract.md#home-and-shelves), [2026-10-08 runtime evidence](../design-docs/state-management.md).
 - **Dependencies / blocker:** Requires deliberately short and horizontally scrolled shelves; no blocker to future simulator coverage.
 - **Next action:** Run the missing shelf/boundary matrix and keep Left/Right, membership, sidebar, and exact Details return as regressions.
@@ -284,7 +274,7 @@ Severity describes the impact if a behavior regresses, not its current status. A
 ### D02 — Search request-error focus and recovery
 
 - **Subsystem / severity / status:** Search loading/error focus; P2; **UNVERIFIED**.
-- **Reproduction:** No controlled failed request was injected; the audit did not disrupt session authentication or shared server connectivity.
+- **Reproduction:** Search was opened and its app-owned field/keyboard appeared, but no controlled failed request was injected; session authentication and shared server connectivity were not disrupted.
 - **Expected:** A query failure does not steal focus; field and keyboard remain usable, no delayed jump occurs, and recovery returns to results correctly.
 - **Observed / evidence:** SearchView keeps app-owned field/key focus and the SearchViewModel refreshes nested content groups. Nested content-group request/error presentation is separate from SearchViewModel's own state; the error-focus/recovery path has not been runtime-proven. This is a risk to test, not a confirmed bug.
 - **References:** [SearchViewModel request path](<../../Shared/ViewModels/SearchViewModel.swift:81>), [Search focus and content](<../../Shared/Views/SearchView.swift:86>), [state-management Search scope](../design-docs/state-management.md#migration-coverage-and-remaining-scope), lines 318-326.
@@ -293,41 +283,41 @@ Severity describes the impact if a behavior regresses, not its current status. A
 
 ### E01 — EPG font geometry across System, Rounded, and Serif
 
-- **Subsystem / severity / status:** EPG typography/layout; P3; **UNVERIFIED**.
-- **Reproduction:** EPG was not opened for a visual geometry check in this audit.
+- **Subsystem / severity / status:** EPG typography/layout; P3; **BLOCKED**.
+- **Reproduction:** Media was opened to check for an EPG route; only Favorites, Movies, and Shows were available. Home exposed no guide/EPG route in this signed simulator session.
 - **Expected:** Program text, row height, ruler alignment, and clipping remain correct for System, Rounded, and Serif.
-- **Observed / evidence:** Source computes EPG row/ruler dimensions from preferred UIKit text metrics with minimum heights; program and ruler text use fixed semantic styles and one-line truncation. Source does not prove rendered measurements or clipping in all app font designs.
+- **Observed / evidence:** No EPG surface or guide data could be opened in this app session, so row height, time-ruler alignment, clipping, focus boundaries, and font geometry were not runtime-tested. Source computes EPG row/ruler dimensions from preferred UIKit text metrics with minimum heights; program and ruler text use fixed semantic styles and one-line truncation, which is not runtime proof.
 - **References:** [App Font environment](<../../Screen tvOS/App/ScreenApp.swift:34>), [EPGLayout](<../../Shared/Objects/EPG/EPGLayout.swift:18>), [program cell](<../../Shared/Components/EPG/Body/Components/EPGProgramCell.swift:73>), [time ruler](<../../Shared/Components/EPG/Body/EPGTimeRuler.swift:43>).
-- **Dependencies / blocker:** Requires loaded guide data and visual checks under all three font designs; Rounded was restored after the Settings test.
-- **Next action:** On simulator, capture the same EPG rows/ruler in System, Rounded, Serif; inspect baseline alignment, clipping, and row stability, then restore the user's original font.
+- **Dependencies / blocker:** The installed app session exposed no EPG/guide route and no loaded guide data. Runtime verification requires an accessible Live TV/EPG surface; Rounded remains the observed App Font preference.
+- **Next action:** Revisit when a guide route and data are available; capture the same EPG rows/ruler in System, Rounded, and Serif, then restore the original font.
 
 ### F04 — Playback overlay layering matrix
 
 - **Subsystem / severity / status:** Player-local overlay stack; P1; **UNVERIFIED** as a full matrix.
 - **Reproduction:** Current audit opened Up Episodes and Back returned to the HUD. Existing 2026-09-28 simulator evidence covered nested Audio, Subtitles, and Quality picker Back, then dropdown, HUD, and Details. Intro/Credits are separately reproduced as A01/A02.
 - **Expected:** One Back dismisses only the top active surface in order: nested picker, dropdown, Episodes/segment surface, transient HUD, player. Focus returns to the correct underlying target.
-- **Observed / evidence:** Episodes and nested playback pickers followed the expected layered dismissal in their available scenarios. The 2026-09-28 run also did not reproduce the reported Restart Episode focus failure (Select restarted at 0:00) or nested picker Back closing the dropdown (Back dismissed only the picker). Intro and Credits violate the contract as A01/A02. This aggregate is not counted as a separate confirmed defect; those two repros are the actionable tracked bugs. No post-fix segment runtime matrix exists.
+- **Observed / evidence:** In this pass, Episodes Back returned to the HUD, a separate Back hid the HUD, and another Back returned to the prior Details route. During playback an Intro prompt was briefly visible while Episodes was open; after one Back Episodes closed and the HUD returned, but the prompt had also naturally left its segment window during the observed playback interval, so this does not establish duplicate dismissal. Earlier post-fix A01/A02 acceptance remains recorded above. Existing 2026-09-28 nested Audio, Subtitles, and Quality picker results predate the latest checkpoint and were not repeated here. The full matrix remains incomplete; no new reproducible defect was established.
 - **References:** [focus contract player stack](../design-docs/focus-navigation-contract.md#player-dismissal-and-return-focus), lines 525-539; [tech-debt segment cases](tech-debt.md#deferred-findings-and-review-needs); [dropdown evidence](../design-docs/focus-navigation-contract.md#down-playback-dropdown).
-- **Dependencies / blocker:** Suitable Intro and Credits sample/segment is needed. The existing simulator has not been retested on the affected content since those reports.
-- **Next action:** Fix A01/A02 using one responder-path trace; then validate every visible layer and its focus return in sequence.
+- **Dependencies / blocker:** A fresh full matrix still needs an available Credits countdown sample plus repeatable nested picker content. A01/A02 fixes have separate prior simulator acceptance.
+- **Next action:** Retest dropdown and nested picker Back, then use an active Intro and Credits countdown to verify one-layer dismissal and focus return across the complete stack.
 
 ### F05 — First/last focus boundaries and deterministic fallback
 
 - **Subsystem / severity / status:** Cross-screen focus boundaries; P1; **UNVERIFIED**.
 - **Reproduction:** Current audit checked Home first TV Shows tile Left to sidebar, Home shelves Down/Up, Search first key Left, and Search no-results Down. Existing Episodes checks exercised several selector/shelf edges, but no single full boundary matrix was run.
 - **Expected:** Representative first/last targets, section transitions, empty regions, and missing-target fallbacks retain focus or choose the documented deterministic destination with one press.
-- **Observed / evidence:** Individual tested boundaries moved once. B01's sidebar return now restored the saved Home target in the focused follow-up. Search fallback to field/key is explicit in source. Libraries, Settings, Details shelves, Episodes edge retention, and disappearing-item fallback were not all exercised.
+- **Observed / evidence:** B01 sidebar return restored the first Continue tile in this pass. Episodes current-item restoration, cross-season fallback to S1:E1, Left at the first episode, and Episodes → HUD → hidden HUD → Details were checked. Earlier F06 evidence covers last-card/last-season clamping. Search first-key no-results and D01/D03 behavior remain covered by their prior entries. Libraries, Settings, Details shelves, empty episode collections, and disappearing-item fallback were not all exercised.
 - **References:** [focus contract known deviations](../design-docs/focus-navigation-contract.md#known-deviations-and-required-confirmation), lines 543-554; [Home fallback](<../../Shared/Objects/FocusCoordinator.swift:326>); [Search fallback](<../../Shared/Views/SearchView.swift:99>).
 - **Dependencies / blocker:** Some focus regions use native tvOS spatial movement; device confirmation remains outstanding.
 - **Next action:** Maintain a compact per-region first/last/empty-target checklist and rerun only affected paths with navigation changes.
 
 ## Blocked verification
 
-None. D02 remains **UNVERIFIED**, not BLOCKED: a safe deterministic failure injection is absent, but a controlled test setup can be provided later without disrupting global connectivity.
+E01 is **BLOCKED** because this simulator session exposed no EPG/guide route. D02 remains **UNVERIFIED**: a safe deterministic failure injection is not configured, but can be provided later without disrupting global connectivity. B03-B07 remain source-verified with runtime coverage incomplete because the available Jellyfin data did not include a disposable, fully restorable test fixture.
 
 ## Newly discovered issues
 
-F06 was discovered during A03 testing and is now PASS after the same playback-surface press owner was made explicit; the original wrap and final boundary acceptance evidence are recorded above. No newly discovered playback bug remains unresolved. B01 reproduced on the pre-fix baseline and passed after the focused correction; it was not a new issue. The Search keyboard capture mismatch (`aaaaa` rather than the typed synthetic query) came from Device Hub input handling and was not counted as an app bug.
+No newly reproducible defect was established in this final verification. F06 was discovered during A03 testing and is PASS after the playback-surface press owner was made explicit; the original wrap and final boundary acceptance evidence are recorded above. B01 reproduced on the pre-fix baseline and passed after the focused correction; it was not a new issue. During this pass an Intro prompt briefly coexisted visually with Episodes, but its disappearance coincided with the segment ending while the tested Back closed Episodes; this was inconclusive and is not classified as a defect. The Search keyboard capture mismatch (`aaaaa` rather than the typed synthetic query) remains attributed to Device Hub input handling, not the app.
 
 ### X01 — Play Next product acceptance and native-player coverage
 
@@ -369,7 +359,6 @@ There are two useful shared investigations: (a) A01/A02 exposed the same outer p
 The bug-burn-down phase is complete only when every confirmed bug is fixed and its original reproduction passes on the Apple TV 4K (3rd generation) 1080p simulator, with affected contract regressions passing; no source-only claim closes a confirmed bug. All currently unverified items are either runtime-verified or explicitly accepted as non-defects/product decisions with evidence. No unexpected focus target, duplicate transition, delayed jump, playback exit, watched/progress mutation, or unrelated Home membership change remains in the affected paths. Physical Apple TV behavior remains a separate evidence tier where hardware-specific focus/playback proof is required.
 
 ## Original audit changes and side effects
-
 In the initial register audit, only this register was created. The pre-existing modified files `docs/design-docs/focus-navigation-contract.md`, `docs/design-docs/navigation-stack.md`, and `docs/product-specs/navigation.md` were not edited, staged, reverted, or overwritten. No source code, existing normative document, commit, or push was changed in that audit.
 
 Runtime used the already installed signed simulator app (version 1.4.1). The existing Mormon Wives S3:E10 session was resumed/paused and returned normally; no watched/favorite/completion control was changed. “Wuthering Heights” was already marked Watched; two brief playback samples reached about 0:03 and returned to its Details screen with Watched still shown. Start/stop reports may have updated its resume position; server-side ticks were not queried and that possible small progress update was not restored. The temporary App Font change was restored from Serif to Rounded. Search query input was local and the simulator session was left without any auth/connectivity changes. No build/install was run because only a documentation artifact changed.
