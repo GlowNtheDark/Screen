@@ -112,9 +112,18 @@ struct VideoPlayerViewShim: View {
         .ignoresSafeArea()
         .persistentSystemOverlays(.hidden)
         .toolbar(.hidden, for: .navigationBar)
+        .onSceneWillEnterForeground {
+            RuntimeDiagnostics.lifecycle.notice(
+                "event=player.foreground_transition state=\(String(describing: manager.state), privacy: .public) playback=\(manager.playbackRequestStatus == .playing ? "playing" : "paused", privacy: .public)"
+            )
+        }
         .onSceneDidEnterBackground {
-            manager.screenSegmentCoordinator.cancelCountdown()
+            RuntimeDiagnostics.lifecycle.notice(
+                "event=player.background_transition state=\(String(describing: manager.state), privacy: .public) playback=\(manager.playbackRequestStatus == .playing ? "playing" : "paused", privacy: .public)"
+            )
+            manager.screenSegmentCoordinator.cancelCountdown(reason: .background)
             if Defaults[.VideoPlayer.Transition.pauseOnBackground] {
+                RuntimeDiagnostics.playback.notice("event=player.pause_requested source=background")
                 manager.setPlaybackRequestStatus(status: .paused)
             }
         }

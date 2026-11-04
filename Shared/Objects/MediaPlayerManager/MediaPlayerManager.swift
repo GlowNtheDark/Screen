@@ -132,9 +132,6 @@ final class MediaPlayerManager: ViewModel {
                 logger.info(
                     "Playing new item",
                     metadata: [
-                        "itemID": .stringConvertible(playbackItem.baseItem.id ?? "Unknown"),
-                        "itemTitle": .stringConvertible(playbackItem.baseItem.displayTitle),
-                        "url": .stringConvertible(playbackItem.url.absoluteString),
                         "isTranscoding": .stringConvertible(playbackItem.mediaSource.transcodingURL != nil),
                     ]
                 )
@@ -238,6 +235,7 @@ final class MediaPlayerManager: ViewModel {
         provider: MediaPlayerItemProvider,
         queue: (any MediaPlayerQueue)? = nil
     ) {
+        RuntimeDiagnostics.playback.notice("event=player.created source=provider")
         self.item = provider.item
         self.queue = queue.map { AnyMediaPlayerQueue($0) }
         self.episodePlaybackDiagnosticID = (queue as? EpisodeMediaPlayerQueue)?.playbackDiagnosticID
@@ -252,6 +250,7 @@ final class MediaPlayerManager: ViewModel {
         playbackItem: MediaPlayerItem,
         queue: (any MediaPlayerQueue)? = nil
     ) {
+        RuntimeDiagnostics.playback.notice("event=player.created source=playback_item")
         self.item = playbackItem.baseItem
         self.queue = queue.map { AnyMediaPlayerQueue($0) }
         self.episodePlaybackDiagnosticID = (queue as? EpisodeMediaPlayerQueue)?.playbackDiagnosticID
@@ -293,30 +292,12 @@ final class MediaPlayerManager: ViewModel {
         #if DEBUG
         Self.logEpisodePlayback(
             episodePlaybackDiagnosticID,
-            event: "manager-error itemID=\(playbackItem?.baseItem.id ?? item.id ?? "unknown")"
+            event: "manager-error"
         )
         #endif
 
-        if let playbackItem {
-            logger.error(
-                "Error while playing item",
-                metadata: [
-                    "error": .stringConvertible(error.localizedDescription),
-                    "itemID": .stringConvertible(playbackItem.baseItem.id ?? "Unknown"),
-                    "itemTitle": .stringConvertible(playbackItem.baseItem.displayTitle),
-                    "url": .stringConvertible(playbackItem.url.absoluteString),
-                ]
-            )
-        } else {
-            logger.error(
-                "Error with no playback item",
-                metadata: [
-                    "error": .stringConvertible(error.localizedDescription),
-                    "itemID": .stringConvertible(item.id ?? "Unknown"),
-                    "itemTitle": .stringConvertible(item.displayTitle),
-                ]
-            )
-        }
+        RuntimeDiagnostics.playback.error("event=player.failed")
+        logger.error("Error while playing media")
 
         proxy?.stop()
         Container.shared.mediaPlayerManagerPublisher().send(nil)
@@ -342,6 +323,7 @@ final class MediaPlayerManager: ViewModel {
             change: .userData(response.value)
         ))
         try await replacePlaybackItem(with: provider)
+        RuntimeDiagnostics.playback.notice("event=play_next.transition_completed")
     }
 
     private func replacePlaybackItem(
@@ -370,6 +352,9 @@ final class MediaPlayerManager: ViewModel {
     @Function(\Action.Cases.setPlaybackRequestStatus)
     private func set(_ status: PlaybackRequestStatus) {
         if self.playbackRequestStatus != status {
+            RuntimeDiagnostics.playback.notice(
+                "event=player.state_transition status=\(status == .playing ? "playing" : "paused", privacy: .public)"
+            )
             self.playbackRequestStatus = status
 
             switch status {
@@ -431,6 +416,7 @@ final class MediaPlayerManager: ViewModel {
 
     @Function(\Action.Cases.start)
     private func _start() async throws {
+        RuntimeDiagnostics.playback.notice("event=player.started")
         guard let initialMediaPlayerItemProvider else {
             await self.stop()
             return
@@ -441,7 +427,7 @@ final class MediaPlayerManager: ViewModel {
         #if DEBUG
         Self.logEpisodePlayback(
             episodePlaybackDiagnosticID,
-            event: "media-item-resolved itemID=\(playbackItem?.baseItem.id ?? "unknown")"
+            event: "media-item-resolved"
         )
         #endif
     }
@@ -450,10 +436,11 @@ final class MediaPlayerManager: ViewModel {
     //       - check that observers would respond correctly to stopping
     @Function(\Action.Cases.stop)
     private func _stop() async throws {
+        RuntimeDiagnostics.playback.notice("event=player.stopped")
         #if DEBUG
         Self.logEpisodePlayback(
             episodePlaybackDiagnosticID,
-            event: "manager-stop-began itemID=\(item.id ?? "unknown")"
+            event: "manager-stop-began"
         )
         #endif
 
@@ -461,6 +448,7 @@ final class MediaPlayerManager: ViewModel {
 
         screenSegmentCoordinator.reset()
         proxy?.stop()
+        RuntimeDiagnostics.playback.notice("event=player.dismissed reason=stopped")
         Container.shared.mediaPlayerManagerPublisher().send(nil)
         Container.shared.mediaPlayerManager.reset()
 
@@ -473,8 +461,10 @@ final class MediaPlayerManager: ViewModel {
     private func _togglePlayPause() {
         switch playbackRequestStatus {
         case .playing:
+            RuntimeDiagnostics.playback.notice("event=player.paused source=user_action")
             setPlaybackRequestStatus(status: .paused)
         case .paused:
+            RuntimeDiagnostics.playback.notice("event=player.resumed source=user_action")
             setPlaybackRequestStatus(status: .playing)
         }
     }
@@ -485,7 +475,7 @@ final class MediaPlayerManager: ViewModel {
         didLogEpisodePlaybackStart = true
         Self.logEpisodePlayback(
             episodePlaybackDiagnosticID,
-            event: "backend-playing backend=\(backend) itemID=\(item.id ?? "unknown")"
+            event: "backend-playing backend=\(backend)"
         )
     }
 
@@ -536,9 +526,7 @@ final class MediaPlayerManager: ViewModel {
         logger.info(
             "Built new playback item",
             metadata: [
-                "playSessionID": "\(newItem.playSessionID)",
                 "isTranscoding": "\(newItem.mediaSource.transcodingURL != nil)",
-                "url": "\(newItem.url.absoluteString)",
             ]
         )
 

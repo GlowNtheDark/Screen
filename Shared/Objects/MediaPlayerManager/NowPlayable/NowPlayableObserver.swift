@@ -48,7 +48,7 @@ class NowPlayableObserver: ViewModel, MediaPlayerObserver {
         do {
             try startSession()
         } catch {
-            logger.critical("Unable to activate audio session: \(error.localizedDescription)")
+            logger.critical("Unable to activate audio session")
         }
 
         cancellables = []
@@ -160,7 +160,7 @@ class NowPlayableObserver: ViewModel, MediaPlayerObserver {
             do {
                 try stopSession()
             } catch {
-                logger.critical("Unable to stop audio session: \(error.localizedDescription)")
+                logger.critical("Unable to stop audio session")
             }
         }
     }
@@ -189,7 +189,7 @@ class NowPlayableObserver: ViewModel, MediaPlayerObserver {
                     }
                 }
             } catch {
-                logger.critical("Unable to reactivate audio session after interruption: \(error.localizedDescription)")
+                logger.critical("Unable to reactivate audio session after interruption")
                 manager?.stop()
             }
         @unknown default: ()
@@ -287,9 +287,11 @@ class NowPlayableObserver: ViewModel, MediaPlayerObserver {
         do {
             try audioSession.setCategory(.playback, mode: .default)
             try audioSession.setActive(true)
+            RuntimeDiagnostics.playback.notice("event=audio_session.activated")
             logger.trace("Started AVAudioSession")
         } catch {
-            logger.critical("Unable to activate AVAudioSession instance: \(error.localizedDescription)")
+            RuntimeDiagnostics.playback.error("event=audio_session.activation_failed")
+            logger.critical("Unable to activate AVAudioSession instance")
             throw error
         }
     }
@@ -297,9 +299,11 @@ class NowPlayableObserver: ViewModel, MediaPlayerObserver {
     private func stopSession() throws {
         do {
             try AVAudioSession.sharedInstance().setActive(false)
+            RuntimeDiagnostics.playback.notice("event=audio_session.deactivated")
             logger.trace("Stopped AVAudioSession")
         } catch {
-            logger.critical("Unable to deactivate AVAudioSession instance: \(error.localizedDescription)")
+            RuntimeDiagnostics.playback.error("event=audio_session.deactivation_failed")
+            logger.critical("Unable to deactivate AVAudioSession instance")
             throw error
         }
     }

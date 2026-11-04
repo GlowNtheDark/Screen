@@ -15,6 +15,11 @@ import JellyfinAPI
 @MainActor
 final class ScreenPlaybackSegmentCoordinator: ObservableObject {
 
+    enum CountdownCancellationReason: String {
+        case background
+        case menu
+    }
+
     struct Presentation {
         enum Kind: Equatable {
             case intro
@@ -119,6 +124,7 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
                     .compactMap(ScreenPlaybackSegment.init)
                     .sorted { $0.start < $1.start }
 
+                RuntimeDiagnostics.playbackSegments.notice("event=segments.retrieved count=\(self.segments.count, privacy: .public)")
                 self.log(
                     "Retrieved \(self.segments.count) playback segments",
                     itemID: itemID
@@ -133,12 +139,16 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
                 }
             } catch {
                 guard !Task.isCancelled else { return }
-                self.log("Segment retrieval failed: \(error.localizedDescription)", itemID: itemID)
+                RuntimeDiagnostics.playbackSegments.error("event=segments.retrieval_failed")
+                self.log("Segment retrieval failed", itemID: itemID)
             }
         }
     }
 
     func reset() {
+        if countdownTask != nil {
+            RuntimeDiagnostics.playbackSegments.notice("event=countdown.canceled reason=item_changed")
+        }
         segmentTask?.cancel()
         countdownTask?.cancel()
         dismissOverlay()
@@ -178,7 +188,7 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
             }
 
         case .countdown:
-            if cancelCountdown() {
+            if cancelCountdown(reason: .menu) {
                 return true
             }
             dismissCreditsPresentation()
@@ -190,7 +200,7 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
         return true
     }
 
-    func playNextEpisode() {
+    func playNextEpisode(isAutomatic: Bool = false) {
         guard let manager,
               let provider = nextItemProvider,
               let segment = activeSegment ?? pendingCreditsSegment
@@ -202,7 +212,9 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
         dismissOverlay()
         activeSegment = nil
         pendingCreditsSegment = nil
-        log("Starting resolved next episode \(provider.item.id ?? "Unknown")")
+        RuntimeDiagnostics.playbackSegments
+            .notice("event=play_next.initiated mode=\(isAutomatic ? "automatic" : "manual", privacy: .public)")
+        log("Starting resolved next episode")
         manager.playNewItemCompletingCurrent(provider: provider)
     }
 
@@ -216,7 +228,7 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
         dismissOverlay()
         activeSegment = nil
         pendingCreditsSegment = nil
-        log("Starting Continue Watching item \(item.id ?? "Unknown")")
+        log("Starting Continue Watching item")
         manager.playNewItem(provider: provider)
     }
 
@@ -228,11 +240,12 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
         dismissOverlay()
         activeSegment = nil
         pendingCreditsSegment = nil
+        RuntimeDiagnostics.playbackSegments.notice("event=play_next.canceled reason=keep_watching")
         log("Credits autoplay cancelled with Keep Watching", segment: segment)
     }
 
     @discardableResult
-    func cancelCountdown() -> Bool {
+    func cancelCountdown(reason: CountdownCancellationReason) -> Bool {
         guard let segment = activeSegment ?? pendingCreditsSegment,
               let presentation,
               case .countdown = presentation.kind
@@ -251,7 +264,8 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
         )
         isOverlayPresented = true
 
-        log("Credits countdown cancelled", segment: segment)
+        RuntimeDiagnostics.playbackSegments.notice("event=countdown.canceled reason=\(reason.rawValue, privacy: .public)")
+        log("Credits countdown cancelled by \(reason.rawValue)", segment: segment)
         return true
     }
 
@@ -305,7 +319,11 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
     }
 
     private func handleIntro(_ segment: ScreenPlaybackSegment) {
-        switch Defaults[.VideoPlayer.Segments.introBehavior] {
+        let behavior = Defaults[.VideoPlayer.Segments.introBehavior]
+        RuntimeDiagnostics.playbackSegments.info("event=segments.intro_behavior setting=\(behavior.rawValue, privacy: .public)")
+        log("Applying intro behavior \(behavior.rawValue)", segment: segment)
+
+        switch behavior {
         case .off:
             break
         case .showSkipButton:
@@ -318,13 +336,19 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
                 countdownProgress: nil
             ))
         case .autoSkip:
+            RuntimeDiagnostics.playbackSegments.notice("event=segments.intro_skip_attempted")
             seek(to: segment.end)
+            RuntimeDiagnostics.playbackSegments.notice("event=segments.intro_skip_performed")
             log("Intro auto-skip completed", segment: segment)
         }
     }
 
     private func handleCredits(_ segment: ScreenPlaybackSegment) {
-        switch Defaults[.VideoPlayer.Segments.creditsBehavior] {
+        let behavior = Defaults[.VideoPlayer.Segments.creditsBehavior]
+        RuntimeDiagnostics.playbackSegments.info("event=segments.credits_behavior setting=\(behavior.rawValue, privacy: .public)")
+        log("Applying credits behavior \(behavior.rawValue)", segment: segment)
+
+        switch behavior {
         case .off:
             break
         case .showNextEpisode:
@@ -339,8 +363,9 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
             activeSegment = segment
             pendingCreditsSegment = segment
             if nextItemProvider != nil {
-                playNextEpisode()
+                playNextEpisode(isAutomatic: true)
             } else {
+                RuntimeDiagnostics.playbackSegments.notice("event=play_next.blocked reason=next_episode_unresolved")
                 log("Immediate autoplay waiting for next-episode resolution", segment: segment)
             }
         }
@@ -353,7 +378,7 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
             return
         }
 
-        log("Resolved next episode \(provider.item.id ?? "Unknown")")
+        log("Resolved next episode")
         guard let segment = pendingCreditsSegment else { return }
 
         switch Defaults[.VideoPlayer.Segments.creditsBehavior] {
@@ -362,7 +387,7 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
         case .countdownAutoplay:
             startCountdownIfPossible(for: segment)
         case .immediateAutoplay:
-            playNextEpisode()
+            playNextEpisode(isAutomatic: true)
         case .off:
             break
         }
@@ -387,6 +412,9 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
               countdownTask == nil,
               let provider = nextItemProvider
         else {
+            RuntimeDiagnostics.playbackSegments.notice(
+                "event=countdown.rejected reason=\(self.cancelledCountdownSegmentIDs.contains(segment.id) ? "previously_canceled" : (self.countdownTask == nil ? "next_episode_unresolved" : "already_running"), privacy: .public)"
+            )
             if nextItemProvider == nil {
                 log("Credits countdown waiting for next-episode resolution", segment: segment)
             }
@@ -402,6 +430,7 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
             countdownDurationSeconds: duration,
             countdownProgress: 0
         ))
+        RuntimeDiagnostics.playbackSegments.notice("event=countdown.started duration_seconds=\(duration, privacy: .public)")
         log("Credits countdown started at \(duration) seconds", segment: segment)
 
         countdownTask = Task { [weak self] in
@@ -449,9 +478,10 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
                   self.presentation?.kind == .countdown
             else { return }
 
+            RuntimeDiagnostics.playbackSegments.notice("event=countdown.completed")
             self.log("Credits countdown completed", segment: segment)
             self.countdownTask = nil
-            self.playNextEpisode()
+            self.playNextEpisode(isAutomatic: true)
         }
     }
 
@@ -479,26 +509,16 @@ final class ScreenPlaybackSegmentCoordinator: ObservableObject {
         dismissOverlay()
         if let segment {
             handledSegmentIDs.insert(segment.id)
+            RuntimeDiagnostics.playbackSegments.notice("event=play_next.canceled reason=menu")
             log("Credits / Play Next presentation dismissed with Back", segment: segment)
         }
     }
 
     private func log(_ message: String, itemID: String? = nil) {
-        manager?.logger.debug(
-            "Screen segments: \(message)",
-            metadata: ["itemID": .stringConvertible(itemID ?? currentItemID ?? "Unknown")]
-        )
+        manager?.logger.debug("Screen segments: \(message)")
     }
 
     private func log(_ message: String, segment: ScreenPlaybackSegment) {
-        manager?.logger.debug(
-            "Screen segments: \(message)",
-            metadata: [
-                "itemID": .stringConvertible(currentItemID ?? "Unknown"),
-                "segmentID": .stringConvertible(segment.id),
-                "startSeconds": .stringConvertible(segment.start.seconds),
-                "endSeconds": .stringConvertible(segment.end.seconds),
-            ]
-        )
+        manager?.logger.debug("Screen segments: \(message)")
     }
 }

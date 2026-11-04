@@ -183,7 +183,19 @@ struct RequestsView: View {
             }
         }
         .task(id: isRequestsVisible) {
-            guard isRequestsVisible else { return }
+            guard isRequestsVisible else {
+                RuntimeDiagnostics.requests.info("event=polling.not_started reason=inactive")
+                return
+            }
+            RuntimeDiagnostics.requests.notice("event=requests.activated")
+            RuntimeDiagnostics.requests.info("event=polling.started")
+            defer {
+                if Task.isCancelled {
+                    RuntimeDiagnostics.requests.info("event=polling.canceled")
+                }
+                RuntimeDiagnostics.requests.info("event=polling.stopped")
+                RuntimeDiagnostics.requests.notice("event=requests.deactivated")
+            }
             while !Task.isCancelled {
                 await refresh()
                 do {
@@ -325,6 +337,13 @@ struct RequestsView: View {
     @MainActor
     private func refresh() async {
         guard isRequestsVisible else { return }
+        let start = DispatchTime.now().uptimeNanoseconds
+        RuntimeDiagnostics.requests.info("event=status_refresh.started")
+        defer {
+            RuntimeDiagnostics.requests.info(
+                "event=status_refresh.finished duration_ms=\(RuntimeDiagnostics.elapsedMilliseconds(since: start), privacy: .public)"
+            )
+        }
         if let activeRefresh {
             await activeRefresh.value
             guard !Task.isCancelled, isRequestsVisible else { return }
@@ -347,6 +366,7 @@ struct RequestsView: View {
     @MainActor
     private func loadSnapshot() async {
         guard !serverURL.isEmpty, let session else { return }
+        let start = DispatchTime.now().uptimeNanoseconds
         let account = RequestAccountKey(serverURL: session.serverURL, userID: session.user.id)
         if let loadedAccount, loadedAccount != account {
             shelves = Dictionary(uniqueKeysWithValues: Shelf.allCases.map { ($0, ShelfState()) })
@@ -356,8 +376,17 @@ struct RequestsView: View {
         do {
             let client = try SeerrClient(url: serverURL)
             if hasLoaded {
-                guard let requestResults = try? await client.requests(session: session) else { return }
-                guard !Task.isCancelled, isRequestsVisible, self.session == session else { return }
+                guard let requestResults = try? await client.requests(session: session) else {
+                    RuntimeDiagnostics.requests.error("event=status_refresh.failed result=network_or_decode")
+                    return
+                }
+                guard !Task.isCancelled, isRequestsVisible, self.session == session else {
+                    RuntimeDiagnostics.requests
+                        .notice(
+                            "event=network.completed_after_inactive duration_ms=\(RuntimeDiagnostics.elapsedMilliseconds(since: start), privacy: .public)"
+                        )
+                    return
+                }
                 for shelf in Shelf.allCases {
                     guard var state = shelves[shelf] else { continue }
                     applyRequestStatuses(requestResults, to: &state.titles, mediaType: shelf.mediaType)
@@ -371,16 +400,30 @@ struct RequestsView: View {
                 try Task.checkCancellation()
                 do {
                     let page = try await discoveryPage(for: shelf, page: 1, client: client, session: session)
+                    if Task.isCancelled || !isRequestsVisible {
+                        RuntimeDiagnostics.requests.notice(
+                            "event=network.completed_after_inactive duration_ms=\(RuntimeDiagnostics.elapsedMilliseconds(since: start), privacy: .public)"
+                        )
+                    }
                     shelves[shelf]?.titles = appendUnique(page.results, to: [])
                     shelves[shelf]?.nextPage = page.page + 1
                     shelves[shelf]?.totalPages = page.totalPages
                     shelves[shelf]?.error = nil
                 } catch {
+                    RuntimeDiagnostics.requests.error("event=discovery.failed result=error")
                     shelves[shelf]?.error = SeerrClientError.requestPresentationDescription(for: error)
                 }
             }
             let requestResults = try? await client.requests(session: session)
-            guard !Task.isCancelled, isRequestsVisible, self.session == session else { return }
+            if requestResults == nil {
+                RuntimeDiagnostics.requests.error("event=status_refresh.failed result=network_or_decode")
+            }
+            guard !Task.isCancelled, isRequestsVisible, self.session == session else {
+                RuntimeDiagnostics.requests.notice(
+                    "event=network.completed_after_inactive duration_ms=\(RuntimeDiagnostics.elapsedMilliseconds(since: start), privacy: .public)"
+                )
+                return
+            }
             if let requestResults {
                 for shelf in Shelf.allCases {
                     guard var state = shelves[shelf] else { continue }
@@ -391,7 +434,13 @@ struct RequestsView: View {
             loadedAccount = account
             hasLoaded = true
             error = nil
+            RuntimeDiagnostics.requests.info(
+                "event=status_refresh.result result=completed duration_ms=\(RuntimeDiagnostics.elapsedMilliseconds(since: start), privacy: .public)"
+            )
         } catch {
+            RuntimeDiagnostics.requests.error(
+                "event=status_refresh.failed result=error duration_ms=\(RuntimeDiagnostics.elapsedMilliseconds(since: start), privacy: .public)"
+            )
             guard !Task.isCancelled, isRequestsVisible else { return }
             self.error = SeerrClientError.requestPresentationDescription(for: error)
         }
