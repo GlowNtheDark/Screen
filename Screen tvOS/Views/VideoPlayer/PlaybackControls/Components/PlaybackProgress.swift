@@ -139,8 +139,11 @@ extension VideoPlayer.PlaybackControls {
                     "editing-changed active=\(isEditing) pending=\(scrubbedSecondsBox.value) current=\(manager.seconds)"
                 )
                 #endif
-                guard isEditing else { return } // Release ends the gesture; Select commits the pending seek.
+                guard isEditing else { return } // Pan release commits; Select commits directional seeks.
                 isScrubbing = true
+            }
+            .onPanEnded {
+                containerState.commitScrub()
             }
             .focusable()
             .focused($isFocused)

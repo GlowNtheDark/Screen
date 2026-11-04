@@ -18,6 +18,7 @@ struct VideoPlayerSlider<Value: BinaryFloatingPoint>: View {
     private let total: Value
     private let isScrollingEnabled: Bool
     private var onEditingChanged: (Bool) -> Void
+    private var onPanEnded: () -> Void
 
     init(
         value: Binding<Value>,
@@ -28,6 +29,7 @@ struct VideoPlayerSlider<Value: BinaryFloatingPoint>: View {
         self.total = total
         self.isScrollingEnabled = isScrollingEnabled
         self.onEditingChanged = { _ in }
+        self.onPanEnded = {}
     }
 
     var body: some View {
@@ -36,7 +38,8 @@ struct VideoPlayerSlider<Value: BinaryFloatingPoint>: View {
             total: total,
             isScrollingEnabled: isScrollingEnabled,
             decelerates: false,
-            onEditingChanged: onEditingChanged
+            onEditingChanged: onEditingChanged,
+            onPanEnded: onPanEnded
         ) {
             VideoPlayerSliderContent()
         }
@@ -47,6 +50,10 @@ extension VideoPlayerSlider {
 
     func onEditingChanged(_ action: @escaping (Bool) -> Void) -> Self {
         copy(modifying: \.onEditingChanged, with: action)
+    }
+
+    func onPanEnded(_ action: @escaping () -> Void) -> Self {
+        copy(modifying: \.onPanEnded, with: action)
     }
 }
 

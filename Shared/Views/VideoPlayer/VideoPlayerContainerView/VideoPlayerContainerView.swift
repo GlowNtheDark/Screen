@@ -453,6 +453,11 @@ extension VideoPlayer {
         private var isPanning: Bool = false
         private var didStartPanningWithSupplement: Bool = false
         private var didStartPanningUpWithoutOverlay: Bool = false
+        #if os(tvOS)
+        private var playbackScrubPanStartSeconds: Duration?
+        private var playbackScrubPanItemID: String?
+        private let playbackScrubPanDampingValue: CGFloat = 200
+        #endif
 
         // MARK: - Supplement Pan Action
 
@@ -695,6 +700,14 @@ extension VideoPlayer {
             }
 
             #if os(tvOS)
+            let scrubPan = DirectionalPanGestureRecognizer(
+                direction: .horizontal,
+                target: self,
+                action: #selector(handlePlaybackScrubPan(_:))
+            )
+            scrubPan.delegate = self
+            view.addGestureRecognizer(scrubPan)
+
             for direction in [UISwipeGestureRecognizer.Direction.up, .down] {
                 let swipe = UISwipeGestureRecognizer(target: self, action: #selector(handlePlaybackSwipe(_:)))
                 swipe.direction = direction
@@ -998,6 +1011,100 @@ extension VideoPlayer {
             command.addTarget { _ in .success }
         }
 
+        @objc
+        private func handlePlaybackScrubPan(_ gestureRecognizer: DirectionalPanGestureRecognizer) {
+            switch gestureRecognizer.state {
+            case .began:
+                guard canBeginBackgroundPlaybackScrub else { return }
+
+                playbackScrubPanStartSeconds = manager.seconds
+                playbackScrubPanItemID = manager.item.id
+                containerState.scrubbedSeconds.value = manager.seconds
+                containerState.isScrubbing = true
+                containerState.isPresentingOverlay = true
+                #if DEBUG
+                PlaybackScrubDiagnostics.log("background-pan-began current=\(manager.seconds)")
+                #endif
+            case .changed:
+                guard let playbackScrubPanStartSeconds else { return }
+                guard canContinueBackgroundPlaybackScrub,
+                      let runtime = manager.item.runtime
+                else {
+                    cancelBackgroundPlaybackScrub()
+                    return
+                }
+
+                let translation = gestureRecognizer.translation(in: view).x
+                let requestedSeconds = playbackScrubPanStartSeconds.seconds +
+                    Double(translation / playbackScrubPanDampingValue) * runtime.seconds
+                let clampedSeconds = clamp(requestedSeconds, min: 0, max: runtime.seconds)
+                containerState.scrubbedSeconds.value = .seconds(clampedSeconds)
+                #if DEBUG
+                PlaybackScrubDiagnostics.log("background-pan-changed pending=\(containerState.scrubbedSeconds.value)")
+                #endif
+            case .ended:
+                guard playbackScrubPanStartSeconds != nil else { return }
+                #if DEBUG
+                PlaybackScrubDiagnostics.log("background-pan-ended pending=\(containerState.scrubbedSeconds.value)")
+                #endif
+                guard canContinueBackgroundPlaybackScrub else {
+                    cancelBackgroundPlaybackScrub()
+                    return
+                }
+                playbackScrubPanStartSeconds = nil
+                playbackScrubPanItemID = nil
+                containerState.commitScrub()
+            case .cancelled, .failed:
+                guard playbackScrubPanStartSeconds != nil else { return }
+                cancelBackgroundPlaybackScrub()
+            default:
+                break
+            }
+        }
+
+        private var canBeginBackgroundPlaybackScrub: Bool {
+            guard !containerState.isPresentingOverlay,
+                  !containerState.isScrubbing,
+                  !containerState.isPresentingSupplement,
+                  !containerState.isPresentingPlaybackDropdown,
+                  !containerState.isPresentingPlaybackEpisodes,
+                  !containerState.isPresentingSegmentOverlay,
+                  !containerState.isPresentingCloseConfirmation,
+                  !containerState.isPlaybackOverlayMenuDismissalGuarded,
+                  manager.state != .loadingItem,
+                  !manager.item.isLiveStream,
+                  let runtime = manager.item.runtime,
+                  runtime > .zero,
+                  !hasPresentedChild(in: self)
+            else { return false }
+
+            return true
+        }
+
+        private var canContinueBackgroundPlaybackScrub: Bool {
+            containerState.isScrubbing &&
+                !containerState.isPresentingSupplement &&
+                !containerState.isPresentingPlaybackDropdown &&
+                !containerState.isPresentingPlaybackEpisodes &&
+                !containerState.isPresentingSegmentOverlay &&
+                !containerState.isPresentingCloseConfirmation &&
+                !containerState.isPlaybackOverlayMenuDismissalGuarded &&
+                manager.state != .loadingItem &&
+                !manager.item.isLiveStream &&
+                manager.item.id == playbackScrubPanItemID &&
+                manager.item.runtime.map { $0 > .zero } == true &&
+                !hasPresentedChild(in: self)
+        }
+
+        private func cancelBackgroundPlaybackScrub() {
+            playbackScrubPanStartSeconds = nil
+            playbackScrubPanItemID = nil
+            #if DEBUG
+            PlaybackScrubDiagnostics.log("background-pan-cancelled pending=\(containerState.scrubbedSeconds.value)")
+            #endif
+            containerState.cancelScrub()
+        }
+
         override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
             super.touchesBegan(touches, with: event)
 
@@ -1296,6 +1403,15 @@ extension VideoPlayer.UIVideoPlayerContainerViewController: UIGestureRecognizerD
         let horizontalPan = (gestureRecognizer as? DirectionalPanGestureRecognizer) ??
             (otherGestureRecognizer as? DirectionalPanGestureRecognizer)
 
+        if isPlaybackSwipe,
+           let horizontalPan,
+           horizontalPan.view === view,
+           horizontalPan.direction == .horizontal,
+           canBeginBackgroundPlaybackScrub || playbackScrubPanStartSeconds != nil
+        {
+            return true
+        }
+
         guard isPlaybackSwipe,
               let horizontalPan,
               horizontalPan.direction == .horizontal,
@@ -1319,6 +1435,15 @@ extension VideoPlayer.UIVideoPlayerContainerViewController: UIGestureRecognizerD
     }
 
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if let horizontalPan = gestureRecognizer as? DirectionalPanGestureRecognizer,
+           horizontalPan.view === view,
+           horizontalPan.direction == .horizontal
+        {
+            guard canBeginBackgroundPlaybackScrub else { return false }
+            let velocity = horizontalPan.velocity(in: view)
+            return abs(velocity.x) > abs(velocity.y)
+        }
+
         guard gestureRecognizer is UISwipeGestureRecognizer else {
             return true
         }

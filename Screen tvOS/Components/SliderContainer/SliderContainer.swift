@@ -30,6 +30,7 @@ struct SliderContainer<Value: BinaryFloatingPoint, Content: SliderContentView>: 
     private let decelerates: Bool
     private let originProgress: Value?
     private let onEditingChanged: (Bool) -> Void
+    private let onPanEnded: () -> Void
     private let view: Content
 
     init(
@@ -39,6 +40,7 @@ struct SliderContainer<Value: BinaryFloatingPoint, Content: SliderContentView>: 
         decelerates: Bool = true,
         originProgress: Value? = nil,
         onEditingChanged: @escaping (Bool) -> Void = { _ in },
+        onPanEnded: @escaping () -> Void = {},
         @ViewBuilder view: @escaping () -> Content
     ) {
         self.value = value
@@ -47,6 +49,7 @@ struct SliderContainer<Value: BinaryFloatingPoint, Content: SliderContentView>: 
         self.decelerates = decelerates
         self.originProgress = originProgress
         self.onEditingChanged = onEditingChanged
+        self.onPanEnded = onPanEnded
         self.view = view()
     }
 
@@ -58,6 +61,7 @@ struct SliderContainer<Value: BinaryFloatingPoint, Content: SliderContentView>: 
             decelerates: decelerates,
             originProgress: originProgress,
             onEditingChanged: onEditingChanged,
+            onPanEnded: onPanEnded,
             view: view
         )
     }
@@ -79,6 +83,7 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
     private let panDampingValue: CGFloat = 200
 
     private let onEditingChanged: (Bool) -> Void
+    private let onPanEnded: () -> Void
     private let total: Value
     private let decelerates: Bool
     private let valueBinding: Binding<Value>
@@ -114,9 +119,11 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
         decelerates: Bool,
         originProgress: Value?,
         onEditingChanged: @escaping (Bool) -> Void,
+        onPanEnded: @escaping () -> Void,
         view: Content
     ) {
         self.onEditingChanged = onEditingChanged
+        self.onPanEnded = onPanEnded
         self.total = total
         self.decelerates = decelerates
         self.valueBinding = value
@@ -252,13 +259,13 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
             #if DEBUG
             PlaybackScrubDiagnostics.log("pan-changed pending=\(clampedValue)")
             #endif
-        case .ended, .cancelled:
+        case .ended:
             panStartValue = containerState.value
             #if DEBUG
-            PlaybackScrubDiagnostics.log("pan-\(gestureRecognizer.state == .ended ? "ended" : "cancelled") pending=\(panStartValue)")
+            PlaybackScrubDiagnostics.log("pan-ended pending=\(panStartValue)")
             #endif
 
-            if gestureRecognizer.state == .ended, decelerates, abs(velocity) > fineTuningVelocityThreshold {
+            if decelerates, abs(velocity) > fineTuningVelocityThreshold {
                 let direction: CGFloat = velocity > 0 ? 1 : -1
                 panDeceleratingVelocity = (abs(velocity) > decelerationMaxVelocity ? decelerationMaxVelocity * direction : velocity) /
                     panDampingValue
@@ -273,6 +280,14 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
                 setEditing(false)
                 stopDeceleratingTimer()
             }
+            onPanEnded()
+        case .cancelled:
+            panStartValue = containerState.value
+            #if DEBUG
+            PlaybackScrubDiagnostics.log("pan-cancelled pending=\(panStartValue)")
+            #endif
+            setEditing(false)
+            stopDeceleratingTimer()
         default:
             break
         }
