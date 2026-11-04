@@ -386,28 +386,31 @@ target.
 | Current focus/region | Up | Down | Left | Right | Select | Back |
 | --- | --- | --- | --- | --- | --- | --- |
 | Player with HUD hidden | First Up reveals HUD; Down opens dropdown per playback contract | Open Down dropdown | Player gesture/seek semantics; exact hidden-HUD behavior is source/runtime-specific | Player gesture/seek semantics; exact hidden-HUD behavior is source/runtime-specific | Show/activate player according to existing control semantics | Exit player through its existing return route |
-| Progress slider while focused | Open Episodes when available; otherwise region boundary | Open dropdown according to playback handler | Adjust the pending seek position backward; focus stays on the slider | Adjust the pending seek position forward; focus stays on the slider | Toggle playback when idle; commit an active scrub | Cancel active scrub before hiding HUD; if no scrub, hide HUD |
-| Active pan/scrub gesture | Gesture-specific | Gesture-specific | Adjust scrub position | Adjust scrub position | Commit the pending seek through the existing player API | Cancel the scrub only; do not also hide HUD/exit on the same press |
+| Progress slider while focused | Open Episodes when available; otherwise region boundary | Open dropdown according to playback handler | Adjust the pending seek position backward; focus stays on the slider | Adjust the pending seek position forward; focus stays on the slider | Toggle playback when idle; commit a pending directional seek | Cancel pending seek before hiding HUD; if no seek, hide HUD |
+| Active pan/scrub gesture | Gesture-specific | Gesture-specific | Adjust scrub position | Adjust scrub position | No click required; release commits the seek | Cancel the scrub only; do not also hide HUD/exit on the same press |
 
-**Observed.** Container appears with the HUD hidden and controls overlaid. The first Up
-from hidden HUD reveals it; Up from visible HUD opens the Episodes surface when
-eligible. Down opens the dropdown. The HUD defaults focus directly to the slider;
-Left/Right remote presses adjust its pending seek position using the configured jump
-intervals, and the slider's horizontal pan recognizer continues continuous gesture
-scrubbing. The parent routes Up/Down and Left/Right in its press-event handler; it does
-not install a catch-all `onMoveCommand` that can swallow horizontal input. Back
-ordering is controlled in `VideoPlayerContainerView.handleMenuEnded()` and can cancel
-scrub or a segment before reaching HUD/player dismissal.
+**Observed.** Container appears with the HUD hidden and controls overlaid. A root-level
+horizontal touch-surface pan begins a seek immediately while the HUD is hidden and no
+player surface or presented child owns interaction; this reveals the HUD and updates
+the pending timeline position during the gesture. Pan release commits the seek. When
+the HUD is already visible, `SliderContainer` handles continuous horizontal scrubbing
+and commits on release. Left/Right remote presses adjust a pending seek using the
+configured jump intervals; Select commits that directional seek. The parent routes
+Up/Down and Left/Right in its press-event handler; it does not install a catch-all
+`onMoveCommand` that can swallow horizontal input. Back ordering is controlled in
+`VideoPlayerContainerView.handleMenuEnded()` and can cancel a pending seek or segment
+before reaching HUD/player dismissal.
 
 **Simulator evidence.** On the Apple TV 4K (3rd generation, 1080p) simulator, the HUD
 opened with the progress bar as its sole focus target. Select paused and resumed from
 that focus, and the display-only status symbol changed from Pause to Play and back.
 Left and Right adjusted the pending seek preview; Select committed backward and
 forward seeks, with elapsed, remaining, fill, and playhead values moving together.
-The Device Hub mouse drag did not emulate the remote touch-surface pan, so continuous
-pan scrubbing was confirmed by source inspection but not directly exercised. Up opened
-Episodes, Down opened the playback dropdown, and Back closed each surface/HUD before
-returning to the presenting Details route. Physical Apple TV validation was excluded.
+The Device Hub mouse drag did not emulate the remote touch-surface pan, so hidden-HUD
+scrub initiation, live timeline feedback, and automatic commit remain unverified at
+runtime. Up opened Episodes, Down opened the playback dropdown, and Back closed each
+surface/HUD before returning to the presenting Details route. Physical Apple TV
+validation was excluded.
 
 Opening a player overlay leaves the media running; the HUD has its own transient
 visibility state, while dropdown/Episodes browsing suspends its auto-hide behavior.
@@ -476,7 +479,7 @@ episode shelf is the only focus region.
 
 | Current focus/region | Up | Down | Left | Right | Select | Back |
 | --- | --- | --- | --- | --- | --- | --- |
-| Visible HUD / Episodes closed | Open Episodes when available; from hidden HUD, first Up only reveals HUD | Open dropdown | Adjust pending seek backward while progress remains focused | Adjust pending seek forward while progress remains focused | Toggle playback from progress when idle; commit an active scrub | Hide HUD before player exit |
+| Visible HUD / Episodes closed | Open Episodes when available; from hidden HUD, first Up only reveals HUD | Open dropdown | Adjust pending seek backward while progress remains focused | Adjust pending seek forward while progress remains focused | Toggle playback when idle; commit directional seek; pan release commits scrub | Cancel pending seek before hiding HUD; otherwise hide HUD before player exit |
 | Episodes season selector | Stay in the selector; no focusable parent target | Move focus to the preferred episode in the selected season: current episode if present, otherwise first eligible episode | Select previous season and keep focus in selector; at first season remain there | Select next season and keep focus in selector; at last season remain there | Retain selected season; shelf reflects it | Close Episodes and restore HUD; do not exit playback |
 | Episodes episode shelf/card | Move focus to the selected season button when the selector is present; otherwise stay in the shelf | Stay in the shelf; no focusable child region | Move to previous episode card and scroll it into view; at first card remain there | Move to next episode card and scroll it into view; at last card remain there | Select episode through existing queue/provider play path | Close Episodes and restore HUD; do not exit playback |
 

@@ -37,9 +37,15 @@ time stay with the bar and use the same current time and duration as its fill an
 playhead. The HUD uses Screen's square geometry and selected accent for active progress
 and focus, over the existing dimmed video and gradient. When the HUD appears, the
 progress bar receives initial focus. Select on the focused bar toggles playback when
-idle and commits an active scrub. Left/Right adjusts the pending seek position, while
-the slider's horizontal pan gesture continues to scrub continuously. The HUD has no
-Rewind, Forward, Previous Episode, or Next Episode buttons.
+idle and commits a pending directional seek. Left/Right adjusts the pending seek
+position. While the HUD is hidden during seekable video playback, a horizontal Siri
+Remote touch-surface swipe begins scrubbing immediately, reveals the seek timeline, and
+shows the pending position during the gesture without requiring Select or prior focus
+on the progress bar. When the HUD is visible, a horizontal pan on the slider continues
+scrubbing. Both pan paths commit automatically when the gesture ends. A pan begun while
+another player surface or presented child owns interaction does not start scrubbing.
+Back cancels a pending seek before hiding the HUD. The HUD has no Rewind, Forward,
+Previous Episode, or Next Episode buttons.
 
 Up from the hidden HUD reveals the HUD only. Up from the visible HUD opens a separate
 Episodes shelf for episode playback while video continues behind it. The currently
