@@ -13,7 +13,7 @@ extension VideoPlayer.PlaybackControls {
 
     struct Dropdown: View {
 
-        private enum Section: String, CaseIterable, Hashable {
+        enum Section: String, CaseIterable, Hashable {
             case info
             case playbackSettings
             case technicalDetails
@@ -32,7 +32,7 @@ extension VideoPlayer.PlaybackControls {
             }
         }
 
-        private enum Setting: CaseIterable, Hashable {
+        enum Setting: CaseIterable, Hashable {
             case quality
             case audio
             case subtitles
@@ -42,9 +42,10 @@ extension VideoPlayer.PlaybackControls {
             }
         }
 
-        private enum FocusTarget: Hashable {
+        enum FocusTarget: Hashable {
             case section(Section)
             case setting(Setting)
+            case restartEpisode
         }
 
         @EnvironmentObject
@@ -57,9 +58,6 @@ extension VideoPlayer.PlaybackControls {
 
         @FocusState
         private var focusedTarget: FocusTarget?
-
-        @FocusState
-        private var focusedRestartAction: Bool
 
         @Namespace
         private var focusScope
@@ -147,7 +145,6 @@ extension VideoPlayer.PlaybackControls {
             .defaultFocus($focusedTarget, .section(.info), priority: .userInitiated)
             .onAppear {
                 focusedTarget = .section(.info)
-                focusedRestartAction = false
                 containerState.playbackDropdownSectionIndex = 0
                 containerState.playbackDropdownFocusRequest = .section(0)
                 containerState.isPlaybackDropdownTopNavigationFocused = true
@@ -166,17 +163,22 @@ extension VideoPlayer.PlaybackControls {
 
                 switch focusedTarget {
                 case let .section(section):
-                    focusedRestartAction = false
                     let index = Section.allCases.firstIndex(of: section) ?? 0
                     containerState.isPlaybackDropdownTopNavigationFocused = true
                     containerState.playbackDropdownSectionIndex = index
                     containerState.playbackDropdownFocusRequest = .section(index)
 
                 case let .setting(setting):
-                    focusedRestartAction = false
                     containerState.isPlaybackDropdownTopNavigationFocused = false
                     containerState.playbackDropdownSettingIndex = setting.index
                     containerState.playbackDropdownFocusRequest = .setting(setting.index)
+
+                case .restartEpisode:
+                    containerState.isPlaybackDropdownTopNavigationFocused = false
+                    containerState.playbackDropdownSectionIndex = 0
+                    // Native focus entry must replace the previous section request so
+                    // the next Up can issue a distinct request back to Info.
+                    containerState.playbackDropdownFocusRequest = .restartEpisode
                 }
             }
             .onDisappear {
@@ -194,21 +196,18 @@ extension VideoPlayer.PlaybackControls {
                 switch request {
                 case let .section(index) where Section.allCases.indices.contains(index):
                     let section = Section.allCases[index]
-                    focusedRestartAction = false
                     selectedSection = section
                     focusedTarget = .section(section)
                     containerState.isPlaybackDropdownTopNavigationFocused = true
 
                 case let .setting(index) where Setting.allCases.indices.contains(index):
-                    focusedRestartAction = false
                     focusedTarget = .setting(Setting.allCases[index])
                     containerState.isPlaybackDropdownTopNavigationFocused = false
 
                 case .restartEpisode:
                     selectedSection = .info
-                    focusedTarget = nil
-                    focusedRestartAction = true
                     containerState.playbackDropdownSectionIndex = 0
+                    focusedTarget = .restartEpisode
                     containerState.isPlaybackDropdownTopNavigationFocused = false
 
                 case .technicalDetailsFirstRow:
@@ -226,7 +225,8 @@ extension VideoPlayer.PlaybackControls {
                     containerState.isPlaybackDropdownTopNavigationFocused = false
                     containerState.playbackDropdownFocusRequest = .restartEpisode
 
-                case .up where focusedRestartAction:
+                case .up where focusedTarget == .restartEpisode:
+                    focusedTarget = .section(.info)
                     containerState.playbackDropdownFocusRequest = .section(0)
 
                 case .up where containerState.isPlaybackDropdownTopNavigationFocused:
@@ -254,7 +254,6 @@ extension VideoPlayer.PlaybackControls {
         private func sectionButton(_ section: Section) -> some View {
             Button {
                 selectedSection = section
-                focusedRestartAction = false
                 let index = Section.allCases.firstIndex(of: section) ?? 0
                 containerState.playbackDropdownSectionIndex = index
                 containerState.playbackDropdownFocusRequest = .section(index)
@@ -272,7 +271,7 @@ extension VideoPlayer.PlaybackControls {
         private var sectionContent: some View {
             switch selectedSection {
             case .info:
-                mediaInfoSupplement.videoPlayerBody(focusedRestartAction: $focusedRestartAction) {
+                mediaInfoSupplement.videoPlayerBody(focusedRestartAction: $focusedTarget) {
                     containerState.isPresentingPlaybackDropdown = false
                 }
                 .eraseToAnyView()

@@ -8,6 +8,56 @@
 
 import SwiftUI
 
+#if os(tvOS)
+extension ButtonStyle where Self == SupplementActionButtonStyle {
+
+    static var supplementAction: SupplementActionButtonStyle {
+        SupplementActionButtonStyle()
+    }
+}
+
+struct SupplementActionButtonStyle: ButtonStyle {
+
+    @Environment(\.screenTheme)
+    private var screenTheme
+    @Environment(\.isFocused)
+    private var isFocused
+    @Environment(\.isEnabled)
+    private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        let fill = !isEnabled
+            ? screenTheme.actions.secondaryDisabledFill
+            : configuration.isPressed
+            ? screenTheme.actions.secondaryPressedFill
+            : screenTheme.actions.secondaryFill
+        let foreground = isEnabled
+            ? screenTheme.actions.secondaryForeground
+            : screenTheme.actions.secondaryDisabledForeground
+        let isVisuallyFocused = isEnabled && isFocused
+
+        return configuration.label
+            .foregroundStyle(foreground.swiftUIColor)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(fill.swiftUIColor)
+            .overlay {
+                Rectangle()
+                    .stroke(
+                        isVisuallyFocused
+                            ? screenTheme.focus.keylineOnSurface.swiftUIColor
+                            : screenTheme.actions.secondaryBoundary.swiftUIColor,
+                        lineWidth: 2
+                    )
+            }
+            .shadow(
+                color: isVisuallyFocused
+                    ? screenTheme.focus.glow.swiftUIColor.opacity(screenTheme.focus.glowOpacity)
+                    : .clear,
+                radius: isVisuallyFocused ? screenTheme.focus.glowRadius : 0
+            )
+    }
+}
+#else
 extension PrimitiveButtonStyle where Self == SupplementActionButtonStyle {
 
     static var supplementAction: SupplementActionButtonStyle {
@@ -37,11 +87,11 @@ struct SupplementActionButtonStyle: PrimitiveButtonStyle {
                         .fill(.white)
                     #endif
                 }
-                #if os(tvOS)
+            #if os(tvOS)
                 .clipShape(Rectangle())
-                #else
+            #else
                 .clipShape(RoundedRectangle(cornerRadius: 7))
-                #endif
+            #endif
         }
         .buttonStyle(.card)
     }
@@ -72,7 +122,7 @@ struct SupplementActionButtonStyle: PrimitiveButtonStyle {
         #if os(tvOS)
         .buttonBorderShape(.roundedRectangle(radius: 0))
         #else
-            .buttonBorderShape(.capsule)
+        .buttonBorderShape(.capsule)
         #endif
         #if os(tvOS)
         .buttonStyle(.card)
@@ -88,3 +138,4 @@ struct SupplementActionButtonStyle: PrimitiveButtonStyle {
         }
     }
 }
+#endif

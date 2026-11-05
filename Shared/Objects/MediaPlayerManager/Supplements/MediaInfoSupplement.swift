@@ -27,7 +27,7 @@ struct MediaInfoSupplement: MediaPlayerSupplement {
 
     #if os(tvOS)
     func videoPlayerBody(
-        focusedRestartAction: FocusState<Bool>.Binding,
+        focusedRestartAction: FocusState<VideoPlayer.PlaybackControls.Dropdown.FocusTarget?>.Binding,
         onRestart: @escaping () -> Void
     ) -> some PlatformView {
         InfoOverlay(
@@ -54,7 +54,9 @@ extension MediaInfoSupplement {
         @State
         private var item: BaseItemDto
 
-        private let focusedRestartAction: FocusState<Bool>.Binding?
+        #if os(tvOS)
+        private let focusedRestartAction: FocusState<VideoPlayer.PlaybackControls.Dropdown.FocusTarget?>.Binding?
+        #endif
         private let onRestart: (() -> Void)?
 
         private var restartActionTitle: String {
@@ -68,15 +70,25 @@ extension MediaInfoSupplement {
             return L10n.fromBeginning
         }
 
+        init(item: BaseItemDto) {
+            self._item = State(initialValue: item)
+            #if os(tvOS)
+            self.focusedRestartAction = nil
+            #endif
+            self.onRestart = nil
+        }
+
+        #if os(tvOS)
         init(
             item: BaseItemDto,
-            focusedRestartAction: FocusState<Bool>.Binding? = nil,
-            onRestart: (() -> Void)? = nil
+            focusedRestartAction: FocusState<VideoPlayer.PlaybackControls.Dropdown.FocusTarget?>.Binding,
+            onRestart: @escaping () -> Void
         ) {
             self._item = State(initialValue: item)
             self.focusedRestartAction = focusedRestartAction
             self.onRestart = onRestart
         }
+        #endif
 
         @ViewBuilder
         private var accessoryView: some View {
@@ -124,15 +136,21 @@ extension MediaInfoSupplement {
 
         @ViewBuilder
         private var fromBeginningButton: some View {
+            #if os(tvOS)
             if let focusedRestartAction {
                 restartButton
-                    .focused(focusedRestartAction)
+                    .focused(focusedRestartAction, equals: .restartEpisode)
                     .frame(height: UIDevice.isTV ? 80 : 40)
             } else {
                 restartButton
                     .focusable(true)
                     .frame(height: UIDevice.isTV ? 80 : 40)
             }
+            #else
+            restartButton
+                .focusable(true)
+                .frame(height: UIDevice.isTV ? 80 : 40)
+            #endif
         }
 
         // TODO: may need to be a layout for correct overview frame

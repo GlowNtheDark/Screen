@@ -326,13 +326,10 @@ extension VideoPlayer.PlaybackControls {
 
         private enum CardMetrics {
             static let width: CGFloat = 340
-            static let height: CGFloat = 316
             static let artworkWidth: CGFloat = 330
-            static let artworkHeight: CGFloat = 186
+            static let artworkHeight: CGFloat = artworkWidth * 9 / 16
             static let metadataSpacing: CGFloat = 10
-            static let seasonLabelHeight: CGFloat = 18
-            static let titleHeight: CGFloat = 64
-            static let runtimeHeight: CGFloat = 18
+            static let bottomPadding: CGFloat = 12
         }
 
         @EnvironmentObject
@@ -554,31 +551,29 @@ extension VideoPlayer.PlaybackControls {
                 Text(episode.seasonEpisodeLabel ?? " ")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(1, reservesSpace: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: CardMetrics.seasonLabelHeight, alignment: .topLeading)
                     .opacity(episode.seasonEpisodeLabel == nil ? 0 : 1)
                     .accessibilityHidden(episode.seasonEpisodeLabel == nil)
 
                 Text(episode.displayTitle)
                     .font(.headline)
-                    .lineLimit(2)
+                    .lineLimit(2, reservesSpace: true)
                     .truncationMode(.tail)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
-                    .frame(height: CardMetrics.titleHeight, alignment: .topLeading)
-                    .clipped()
 
                 Text(episode.runTimeLabel ?? " ")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(1, reservesSpace: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: CardMetrics.runtimeHeight, alignment: .topLeading)
                     .opacity(episode.runTimeLabel == nil ? 0 : 1)
                     .accessibilityHidden(episode.runTimeLabel == nil)
             }
-            .frame(width: CardMetrics.width, height: CardMetrics.height, alignment: .topLeading)
+            .padding(.bottom, CardMetrics.bottomPadding)
+            .frame(width: CardMetrics.width, alignment: .topLeading)
+            .fixedSize(horizontal: false, vertical: true)
             .contentShape(Rectangle())
         }
     }
