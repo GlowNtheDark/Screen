@@ -29,6 +29,10 @@ Next remain a separate playback state. Entering the background cancels an active
 next-episode countdown and retains the manual Play Next choice; returning to the app
 does not restart the countdown. The native AVPlayer path is unchanged.
 
+On the Info section, Down hands focus to Restart Episode and Up returns focus to Info.
+Restart Episode uses Screen's semantic secondary-action appearance and retains a clear
+focused state; its enabled state follows whether the action is available.
+
 The custom tvOS HUD keeps episode/title metadata at the lower left. Its primary
 transport is the progress bar, with a small Play/Pause status symbol immediately to
 its left in the same horizontal row. The symbol shows Play while paused and Pause while
@@ -42,10 +46,18 @@ position. While the HUD is hidden during seekable video playback, a horizontal S
 Remote touch-surface swipe begins scrubbing immediately, reveals the seek timeline, and
 shows the pending position during the gesture without requiring Select or prior focus
 on the progress bar. When the HUD is visible, a horizontal pan on the slider continues
-scrubbing. Both pan paths commit automatically when the gesture ends. A pan begun while
-another player surface or presented child owns interaction does not start scrubbing.
-Back cancels a pending seek before hiding the HUD. The HUD has no Rewind, Forward,
-Previous Episode, or Next Episode buttons.
+scrubbing while the progress bar is focused. The player container owns Siri Remote pan
+recognition in both HUD states; the progress slider's own pan recognizer stays disabled
+so one gesture cannot be consumed twice. Each update applies the translation since the
+previous update to the pending position, and every new swipe starts from the current
+position, so consecutive swipes continue from the prior committed seek. A horizontal
+intent classifier uses velocity when decisive and translation as a fallback; vertical
+swipes remain available to the Up/Down navigation handlers. Both pan paths commit
+automatically when the gesture ends. Targets are clamped to the valid runtime, and VLC
+targets also stay at least one millisecond before the shorter reported media length or
+runtime. Scrubbing is unavailable for live or loading media and while another player
+surface or presented child owns interaction. Back cancels a pending seek before hiding
+the HUD. The HUD has no Rewind, Forward, Previous Episode, or Next Episode buttons.
 
 Up from the hidden HUD reveals the HUD only. Up from the visible HUD opens a separate
 Episodes shelf for episode playback while video continues behind it. The currently
@@ -56,6 +68,15 @@ it; only a subsequent Back follows the existing player-exit behavior. The Info
 supplement is available through the dropdown and is not opened by swiping Up. Episodes
 is not a dropdown section or a HUD button. Down continues to open the playback
 dropdown, whose Up/Back behavior above remains unchanged.
+Episode cards keep 16:9 artwork and size vertically to their metadata; season/episode
+and duration labels reserve their rows so missing values do not shift neighboring
+cards' title or runtime alignment.
+
+**Physical Apple TV report (2026-11-04).** Jamie reports that the current physical and
+UI regression checks pass for hidden-HUD and focused-progress scrubbing, playback
+navigation, overlay presentation, Restart Episode styling, episode-card layout, and
+focus handoffs. This report covers those checked paths; no automated tests or build
+were run as part of this documentation checkpoint.
 
 The dropdown's Quality, Audio, and Subtitles controls show their current item/player
 selection as the primary value and the setting name below it. They reuse the existing
