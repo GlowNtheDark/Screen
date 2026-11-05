@@ -17,6 +17,25 @@ class VLCMediaPlayerProxy: VideoMediaPlayerProxy,
     MediaPlayerSubtitleConfigurable
 {
 
+    #if os(tvOS)
+    private var lastVLCLengthMilliseconds: Int?
+    private weak var lastVLCLengthPlaybackItem: MediaPlayerItem?
+
+    func scrubSeekUpperBound(for runtime: Duration) -> Duration {
+        var duration = runtime
+        if let playbackItem = manager?.playbackItem,
+           lastVLCLengthPlaybackItem === playbackItem,
+           let length = lastVLCLengthMilliseconds,
+           length > 0
+        {
+            duration = min(duration, .milliseconds(length))
+        }
+
+        // VLCUI sends millisecond timestamps; keep the target below the media end.
+        return max(.zero, duration - .milliseconds(1))
+    }
+    #endif
+
     let isBuffering: PublishedBox<Bool> = .init(initialValue: false)
     let videoSize: PublishedBox<CGSize> = .init(initialValue: .zero)
     let droppedFrames: PublishedBox<Int> = .init(initialValue: 0)
@@ -73,6 +92,16 @@ class VLCMediaPlayerProxy: VideoMediaPlayerProxy,
     func setSeconds(_ seconds: Duration) {
         vlcUIProxy.setSeconds(seconds)
     }
+
+    #if os(tvOS)
+    private func observePlaybackInformation(
+        _ info: VLCVideoPlayer.PlaybackInformation,
+        playbackItem: MediaPlayerItem
+    ) {
+        lastVLCLengthMilliseconds = info.length
+        lastVLCLengthPlaybackItem = playbackItem
+    }
+    #endif
 
     func setAudioStream(_ stream: MediaStream) {
         vlcUIProxy.setAudioTrack(.absolute(stream.index ?? -1))
@@ -168,6 +197,13 @@ extension VLCMediaPlayerProxy {
                 VLCVideoPlayer(configuration: vlcConfiguration(for: playbackItem))
                     .proxy(proxy)
                     .onSecondsUpdated { newSeconds, info in
+                        #if os(tvOS)
+                        (manager.proxy as? VLCMediaPlayerProxy)?.observePlaybackInformation(
+                            info,
+                            playbackItem: playbackItem
+                        )
+                        #endif
+
                         if !isScrubbing {
                             containerState.scrubbedSeconds.value = newSeconds
                         }

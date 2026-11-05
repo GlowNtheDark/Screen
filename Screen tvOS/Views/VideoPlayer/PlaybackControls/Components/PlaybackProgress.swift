@@ -127,18 +127,14 @@ extension VideoPlayer.PlaybackControls {
                     },
                     setter: {
                         guard $0.isFinite else { return .zero }
-                        return (manager.item.runtime ?? .zero) * (clamp($0, min: 0, max: 100) / 100)
+                        let seconds = (manager.item.runtime ?? .zero) * (clamp($0, min: 0, max: 100) / 100)
+                        return containerState.clampedScrubTarget(seconds)
                     }
                 ),
                 total: 100,
-                isScrollingEnabled: manager.state != .loadingItem
+                isScrollingEnabled: false // The parent recognizer owns Siri Remote pans in both HUD states.
             )
             .onEditingChanged { isEditing in
-                #if DEBUG
-                PlaybackScrubDiagnostics.log(
-                    "editing-changed active=\(isEditing) pending=\(scrubbedSecondsBox.value) current=\(manager.seconds)"
-                )
-                #endif
                 guard isEditing else { return } // Pan release commits; Select commits directional seeks.
                 isScrubbing = true
             }

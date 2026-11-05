@@ -456,6 +456,7 @@ extension VideoPlayer {
         #if os(tvOS)
         private var playbackScrubPanStartSeconds: Duration?
         private var playbackScrubPanItemID: String?
+        private var playbackScrubPanLastTranslation: CGFloat = 0
         private let playbackScrubPanDampingValue: CGFloat = 200
         #endif
 
@@ -1015,18 +1016,18 @@ extension VideoPlayer {
         private func handlePlaybackScrubPan(_ gestureRecognizer: DirectionalPanGestureRecognizer) {
             switch gestureRecognizer.state {
             case .began:
-                guard canBeginBackgroundPlaybackScrub else { return }
+                guard canBeginPlaybackScrub else { return }
 
                 playbackScrubPanStartSeconds = manager.seconds
                 playbackScrubPanItemID = manager.item.id
+                playbackScrubPanLastTranslation = gestureRecognizer.translation(in: view).x
                 containerState.scrubbedSeconds.value = manager.seconds
                 containerState.isScrubbing = true
-                containerState.isPresentingOverlay = true
-                #if DEBUG
-                PlaybackScrubDiagnostics.log("background-pan-began current=\(manager.seconds)")
-                #endif
+                if !containerState.isPresentingOverlay {
+                    containerState.isPresentingOverlay = true
+                }
             case .changed:
-                guard let playbackScrubPanStartSeconds else { return }
+                guard playbackScrubPanStartSeconds != nil else { return }
                 guard canContinueBackgroundPlaybackScrub,
                       let runtime = manager.item.runtime
                 else {
@@ -1035,18 +1036,16 @@ extension VideoPlayer {
                 }
 
                 let translation = gestureRecognizer.translation(in: view).x
-                let requestedSeconds = playbackScrubPanStartSeconds.seconds +
-                    Double(translation / playbackScrubPanDampingValue) * runtime.seconds
-                let clampedSeconds = clamp(requestedSeconds, min: 0, max: runtime.seconds)
+                let translationDelta = translation - playbackScrubPanLastTranslation
+                playbackScrubPanLastTranslation = translation
+                // The slider's damped value is a percentage, not a fraction of the runtime.
+                let requestedSeconds = containerState.scrubbedSeconds.value.seconds +
+                    Double(translationDelta / playbackScrubPanDampingValue / 100) * runtime.seconds
+                let upperBound = (manager.proxy as? VLCMediaPlayerProxy)?.scrubSeekUpperBound(for: runtime) ?? runtime
+                let clampedSeconds = clamp(requestedSeconds, min: 0, max: upperBound.seconds)
                 containerState.scrubbedSeconds.value = .seconds(clampedSeconds)
-                #if DEBUG
-                PlaybackScrubDiagnostics.log("background-pan-changed pending=\(containerState.scrubbedSeconds.value)")
-                #endif
             case .ended:
                 guard playbackScrubPanStartSeconds != nil else { return }
-                #if DEBUG
-                PlaybackScrubDiagnostics.log("background-pan-ended pending=\(containerState.scrubbedSeconds.value)")
-                #endif
                 guard canContinueBackgroundPlaybackScrub else {
                     cancelBackgroundPlaybackScrub()
                     return
@@ -1063,7 +1062,11 @@ extension VideoPlayer {
         }
 
         private var canBeginBackgroundPlaybackScrub: Bool {
-            guard !containerState.isPresentingOverlay,
+            !containerState.isPresentingOverlay && canBeginPlaybackScrub
+        }
+
+        private var canBeginPlaybackScrub: Bool {
+            guard !containerState.isPresentingOverlay || containerState.isProgressBarFocused,
                   !containerState.isScrubbing,
                   !containerState.isPresentingSupplement,
                   !containerState.isPresentingPlaybackDropdown,
@@ -1099,9 +1102,6 @@ extension VideoPlayer {
         private func cancelBackgroundPlaybackScrub() {
             playbackScrubPanStartSeconds = nil
             playbackScrubPanItemID = nil
-            #if DEBUG
-            PlaybackScrubDiagnostics.log("background-pan-cancelled pending=\(containerState.scrubbedSeconds.value)")
-            #endif
             containerState.cancelScrub()
         }
 
@@ -1244,11 +1244,6 @@ extension VideoPlayer {
         }
 
         private func handleSelectEnded(_ press: UIPress, event: UIPressesEvent?) {
-            #if os(tvOS) && DEBUG
-            PlaybackScrubDiagnostics.log(
-                "select-ended scrubbing=\(containerState.isScrubbing) focused=\(containerState.isProgressBarFocused) current=\(manager.seconds) pending=\(containerState.scrubbedSeconds.value)"
-            )
-            #endif
             if containerState.isPresentingSegmentOverlay {
                 forwardPressesEnded([press], event: event)
                 return
@@ -1282,11 +1277,6 @@ extension VideoPlayer {
         }
 
         func handleMenuEnded() {
-            #if os(tvOS) && DEBUG
-            PlaybackScrubDiagnostics.log(
-                "back-ended scrubbing=\(containerState.isScrubbing) focused=\(containerState.isProgressBarFocused) current=\(manager.seconds) pending=\(containerState.scrubbedSeconds.value)"
-            )
-            #endif
             #if DEBUG
             EpisodePlaybackDiagnostics.logEpisodesBack(
                 manager.episodePlaybackDiagnosticID,
@@ -1425,14 +1415,11 @@ extension VideoPlayer.UIVideoPlayerContainerViewController: UIGestureRecognizerD
               !containerState.isPresentingSegmentOverlay
         else { return false }
 
-        let velocity = horizontalPan.velocity(in: horizontalPan.view)
-        let isHorizontalIntent = abs(velocity.x) > abs(velocity.y)
-        #if DEBUG
-        PlaybackScrubDiagnostics.log(
-            "gesture-arbitration horizontalPan=true horizontalIntent=\(isHorizontalIntent) velocityX=\(velocity.x) velocityY=\(velocity.y)"
+        return DirectionalPanGestureRecognizer.matches(
+            direction: .horizontal,
+            velocity: horizontalPan.velocity(in: horizontalPan.view),
+            translation: horizontalPan.translation(in: horizontalPan.view)
         )
-        #endif
-        return isHorizontalIntent
     }
 
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -1440,9 +1427,15 @@ extension VideoPlayer.UIVideoPlayerContainerViewController: UIGestureRecognizerD
            horizontalPan.view === view,
            horizontalPan.direction == .horizontal
         {
-            guard canBeginBackgroundPlaybackScrub else { return false }
+            let canBegin = canBeginPlaybackScrub
             let velocity = horizontalPan.velocity(in: view)
-            return abs(velocity.x) > abs(velocity.y)
+            let translation = horizontalPan.translation(in: view)
+            let isHorizontal = DirectionalPanGestureRecognizer.matches(
+                direction: .horizontal,
+                velocity: velocity,
+                translation: translation
+            )
+            return canBegin && isHorizontal
         }
 
         guard gestureRecognizer is UISwipeGestureRecognizer else {

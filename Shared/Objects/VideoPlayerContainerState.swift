@@ -260,33 +260,34 @@ class VideoPlayerContainerState: ObservableObject {
     #endif
 
     func commitScrub() {
-        #if os(tvOS) && DEBUG
-        PlaybackScrubDiagnostics.log(
-            "commit-request scrubbing=\(isScrubbing) current=\(manager?.seconds ?? .zero) pending=\(scrubbedSeconds.value)"
-        )
-        #endif
         guard isScrubbing else { return }
 
-        manager?.seconds = scrubbedSeconds.value
+        #if os(tvOS)
+        let target = clampedScrubTarget(scrubbedSeconds.value)
+        if target != scrubbedSeconds.value {
+            scrubbedSeconds.value = target
+        }
+        #else
+        let target = scrubbedSeconds.value
+        #endif
+
+        manager?.seconds = target
         if let proxy = manager?.proxy {
-            proxy.setSeconds(scrubbedSeconds.value)
-            #if os(tvOS) && DEBUG
-            PlaybackScrubDiagnostics.log("commit-issued target=\(scrubbedSeconds.value)")
-            #endif
-        } else {
-            #if os(tvOS) && DEBUG
-            PlaybackScrubDiagnostics.log("commit-no-proxy target=\(scrubbedSeconds.value)")
-            #endif
+            proxy.setSeconds(target)
         }
         isScrubbing = false
     }
 
+    #if os(tvOS)
+    func clampedScrubTarget(_ seconds: Duration) -> Duration {
+        guard let runtime = manager?.item.runtime, runtime > .zero else { return .zero }
+
+        let upperBound = (manager?.proxy as? VLCMediaPlayerProxy)?.scrubSeekUpperBound(for: runtime) ?? runtime
+        return clamp(seconds, min: .zero, max: upperBound)
+    }
+    #endif
+
     func cancelScrub() {
-        #if os(tvOS) && DEBUG
-        PlaybackScrubDiagnostics.log(
-            "cancel-request scrubbing=\(isScrubbing) current=\(manager?.seconds ?? .zero) pending=\(scrubbedSeconds.value)"
-        )
-        #endif
         guard isScrubbing else { return }
 
         if let manager {

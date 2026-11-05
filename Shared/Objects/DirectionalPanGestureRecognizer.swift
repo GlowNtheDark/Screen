@@ -11,8 +11,10 @@ import UIKit
 class DirectionalPanGestureRecognizer: UIPanGestureRecognizer {
 
     var direction: Direction
-    #if os(tvOS) && DEBUG
-    private var didLogInitialMove = false
+    #if os(tvOS)
+    private static let minimumDirectionalVelocity: CGFloat = 20
+    private static let directionalDominanceRatio: CGFloat = 1.2
+
     #endif
 
     init(direction: Direction, target: AnyObject, action: Selector) {
@@ -20,81 +22,96 @@ class DirectionalPanGestureRecognizer: UIPanGestureRecognizer {
         super.init(target: target, action: action)
     }
 
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesBegan(touches, with: event)
-        #if os(tvOS) && DEBUG
-        didLogInitialMove = false
-        let touchType = touches.first.map { String(describing: $0.type) } ?? "none"
-        PlaybackScrubDiagnostics.log(
-            "pan-touch-began direction=\(direction) type=\(touchType) state=\(state.rawValue) attached=\(view != nil)"
-        )
+    static func matches(
+        direction: Direction,
+        velocity: CGPoint,
+        translation: CGPoint
+    ) -> Bool {
+        #if os(tvOS)
+        guard direction != .all else { return true }
+
+        let intent = directionalIntent(velocity: velocity, translation: translation)
+
+        if direction == .allButDown {
+            return intent == .up || intent?.isHorizontal == true
+        }
+        if direction == .horizontal {
+            return intent?.isHorizontal == true
+        }
+        if direction == .vertical {
+            return intent?.isVertical == true
+        }
+        if direction == .up {
+            return intent == .up
+        }
+        if direction == .down {
+            return intent == .down
+        }
+        if direction == .left {
+            return intent == .left
+        }
+        if direction == .right {
+            return intent == .right
+        }
+
+        return false
+        #else
+        let isUp = velocity.y < 0
+        let isHorizontal = velocity.y.magnitude < velocity.x.magnitude
+        let isVertical = velocity.x.magnitude < velocity.y.magnitude
+
+        switch direction {
+        case .all: return true
+        case .allButDown: return isUp || isHorizontal
+        case .horizontal: return isHorizontal
+        case .vertical: return isVertical
+        case .up: return isVertical && velocity.y < 0
+        case .down: return isVertical && velocity.y > 0
+        case .left: return isHorizontal && velocity.x < 0
+        case .right: return isHorizontal && velocity.x > 0
+        default: return false
+        }
         #endif
     }
 
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
-        let previousState = state
-        super.touchesMoved(touches, with: event)
-
-        #if os(tvOS) && DEBUG
-        if !didLogInitialMove || previousState != state {
-            didLogInitialMove = true
-            let touchType = touches.first.map { String(describing: $0.type) } ?? "none"
-            let delta: CGPoint
-            if let touch = touches.first, let view {
-                let location = touch.location(in: view)
-                let previousLocation = touch.previousLocation(in: view)
-                delta = CGPoint(x: location.x - previousLocation.x, y: location.y - previousLocation.y)
-            } else {
-                delta = .zero
-            }
-            PlaybackScrubDiagnostics.log(
-                "pan-touch-moved direction=\(direction) type=\(touchType) delta=\(delta) state=\(state.rawValue)"
-            )
+    #if os(tvOS)
+    private static func directionalIntent(velocity: CGPoint, translation: CGPoint) -> Direction? {
+        if hypot(velocity.x, velocity.y) >= minimumDirectionalVelocity,
+           let intent = directionalIntent(from: velocity)
+        {
+            return intent
         }
-        #endif
+
+        return directionalIntent(from: translation)
+    }
+
+    private static func directionalIntent(from vector: CGPoint) -> Direction? {
+        let horizontalMagnitude = abs(vector.x)
+        let verticalMagnitude = abs(vector.y)
+        guard horizontalMagnitude > 0 || verticalMagnitude > 0 else { return nil }
+
+        if horizontalMagnitude >= verticalMagnitude * directionalDominanceRatio {
+            return vector.x < 0 ? .left : .right
+        }
+        if verticalMagnitude >= horizontalMagnitude * directionalDominanceRatio {
+            return vector.y < 0 ? .up : .down
+        }
+
+        return nil
+    }
+    #endif
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesMoved(touches, with: event)
 
         if state == .began {
             let velocity = velocity(in: view)
+            let translation = translation(in: view)
 
-            let isUp = velocity.y < 0
-            let isHorizontal = velocity.y.magnitude < velocity.x.magnitude
-            let isVertical = velocity.x.magnitude < velocity.y.magnitude
-
-            #if os(tvOS) && DEBUG
-            PlaybackScrubDiagnostics.log(
-                "directional-pan-began direction=\(direction) velocityX=\(velocity.x) velocityY=\(velocity.y)"
-            )
-            #endif
-
-            switch direction {
-            case .all: ()
-            case .allButDown where isUp || isHorizontal: ()
-            case .horizontal where isHorizontal: ()
-            case .vertical where isVertical: ()
-            case .up where isVertical && velocity.y < 0: ()
-            case .down where isVertical && velocity.y > 0: ()
-            case .left where isHorizontal && velocity.x < 0: ()
-            case .right where isHorizontal && velocity.x > 0: ()
-            default:
-                #if os(tvOS) && DEBUG
-                PlaybackScrubDiagnostics.log("directional-pan-rejected direction=\(direction)")
-                #endif
+            guard Self.matches(direction: direction, velocity: velocity, translation: translation) else {
                 state = .cancelled
+                return
             }
         }
-    }
-
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesEnded(touches, with: event)
-        #if os(tvOS) && DEBUG
-        PlaybackScrubDiagnostics.log("pan-touch-ended direction=\(direction) state=\(state.rawValue)")
-        #endif
-    }
-
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
-        super.touchesCancelled(touches, with: event)
-        #if os(tvOS) && DEBUG
-        PlaybackScrubDiagnostics.log("pan-touch-cancelled direction=\(direction) state=\(state.rawValue)")
-        #endif
     }
 }

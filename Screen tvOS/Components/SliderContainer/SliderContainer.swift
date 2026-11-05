@@ -6,19 +6,7 @@
 // Copyright (c) 2026 Jellyfin & Jellyfin Contributors
 //
 
-import Logging
 import SwiftUI
-
-#if DEBUG
-enum PlaybackScrubDiagnostics {
-
-    private static let logger = Logger(label: "Screen.PlaybackScrub")
-
-    static func log(_ event: String) {
-        logger.debug("[SCREEN_PLAYBACK_SCRUB] \(event)")
-    }
-}
-#endif
 
 // TODO: make a `StyledView`
 
@@ -104,9 +92,6 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
     let containerState: SliderContainerState<Value>
     private var view: Content
     private var decelerationTimer: Timer?
-    #if DEBUG
-    private var didLogTouchHitTest = false
-    #endif
 
     override var canBecomeFocused: Bool {
         isEnabled && !isHidden && alpha > 0
@@ -195,44 +180,17 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
         )
         panGestureRecognizer.isEnabled = isScrollingEnabled
         addGestureRecognizer(panGestureRecognizer)
-        #if DEBUG
-        PlaybackScrubDiagnostics.log(
-            "pan-installed direction=horizontal enabled=\(panGestureRecognizer.isEnabled) attached=\(panGestureRecognizer.view === self)"
-        )
-        #endif
-    }
-
-    override func didMoveToWindow() {
-        super.didMoveToWindow()
-        #if DEBUG
-        PlaybackScrubDiagnostics.log(
-            "slider-window-attached=\(window != nil) pan-enabled=\(panGestureRecognizer?.isEnabled ?? false) bounds=\(bounds)"
-        )
-        #endif
-    }
-
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        let hitView = super.hitTest(point, with: event)
-        #if DEBUG
-        if !didLogTouchHitTest, event?.type == .touches {
-            didLogTouchHitTest = true
-            PlaybackScrubDiagnostics.log(
-                "slider-hit-test point=\(point) target=\(String(describing: hitView.map { type(of: $0) })) enabled=\(isEnabled) interaction=\(isUserInteractionEnabled)"
-            )
-        }
-        #endif
-        return hitView
     }
 
     private var panDeceleratingVelocity: CGFloat = 0
     private var panStartValue: Value = 0
+    #if os(tvOS)
+    private var panLastTranslation: CGFloat = 0
+    #endif
 
     @objc
     private func didPan(_ gestureRecognizer: UIPanGestureRecognizer) {
         guard isScrollingEnabled else {
-            #if DEBUG
-            PlaybackScrubDiagnostics.log("pan-rejected disabled=true")
-            #endif
             return
         }
 
@@ -241,29 +199,29 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
 
         switch gestureRecognizer.state {
         case .began:
-            #if DEBUG
-            PlaybackScrubDiagnostics.log("pan-began focused=\(containerState.isFocused) value=\(containerState.value)")
-            #endif
             setEditing(true)
             panStartValue = containerState.value
+            #if os(tvOS)
+            panLastTranslation = translation
+            #endif
             stopDeceleratingTimer()
         case .changed:
+            #if os(tvOS)
+            let translationDelta = translation - panLastTranslation
+            panLastTranslation = translation
+            let newValue = containerState.value + Value(translationDelta / panDampingValue)
+            #else
             let dampedTranslation = translation / panDampingValue
             let newValue = panStartValue + Value(dampedTranslation)
+            #endif
             let clampedValue = clamp(newValue, min: 0, max: containerState.total)
 
             sendActions(for: .valueChanged)
 
             containerState.value = clampedValue
             valueBinding.wrappedValue = clampedValue
-            #if DEBUG
-            PlaybackScrubDiagnostics.log("pan-changed pending=\(clampedValue)")
-            #endif
         case .ended:
             panStartValue = containerState.value
-            #if DEBUG
-            PlaybackScrubDiagnostics.log("pan-ended pending=\(panStartValue)")
-            #endif
 
             if decelerates, abs(velocity) > fineTuningVelocityThreshold {
                 let direction: CGFloat = velocity > 0 ? 1 : -1
@@ -283,9 +241,6 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
             onPanEnded()
         case .cancelled:
             panStartValue = containerState.value
-            #if DEBUG
-            PlaybackScrubDiagnostics.log("pan-cancelled pending=\(panStartValue)")
-            #endif
             setEditing(false)
             stopDeceleratingTimer()
         default:
@@ -327,9 +282,6 @@ final class UISliderContainer<Value: BinaryFloatingPoint, Content: SliderContent
 
         self.isScrollingEnabled = isScrollingEnabled
         panGestureRecognizer?.isEnabled = isScrollingEnabled
-        #if DEBUG
-        PlaybackScrubDiagnostics.log("pan-enabled=\(isScrollingEnabled)")
-        #endif
 
         if publishState && containerState.isScrollingEnabled != isScrollingEnabled {
             containerState.isScrollingEnabled = isScrollingEnabled

@@ -26,7 +26,7 @@ extension VideoPlayer.PlaybackControls {
         let interval = forward ? jumpForwardInterval.rawValue : jumpBackwardInterval.rawValue
         let requestedPosition = currentPosition + (interval * (forward ? 1 : -1))
 
-        containerState.scrubbedSeconds.value = min(max(requestedPosition, .zero), runtime)
+        containerState.scrubbedSeconds.value = containerState.clampedScrubTarget(requestedPosition)
         containerState.isScrubbing = true
     }
 
